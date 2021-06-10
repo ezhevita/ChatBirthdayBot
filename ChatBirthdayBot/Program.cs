@@ -22,6 +22,16 @@ namespace ChatBirthdayBot {
 		private static readonly SemaphoreSlim ShutdownSemaphore = new(0, 1);
 		private static readonly CultureInfo RussianCulture = CultureInfo.GetCultureInfoByIetfLanguageTag("ru-RU");
 
+		private static int AgeFromDate(DateTime birthdate) {
+			var today = DateTime.Today;
+			var age = today.Year - birthdate.Year;
+			if (birthdate.Date > today.AddYears(-age)) {
+				age--;
+			}
+
+			return age;
+		}
+
 		private static async Task CheckBirthdays() {
 			DateTime currentDate = DateTime.UtcNow.Date;
 
@@ -39,7 +49,7 @@ namespace ChatBirthdayBot {
 			}
 
 			Dictionary<Chat, List<User>> dictionary = todayBirthdays
-				.Select(user => user.Chats.Select(chat => (chat, user)))
+				.Select(user => user.Chats.Select(chat => new { chat, user }))
 				.SelectMany(x => x)
 				.GroupBy(x => x.chat)
 				.ToDictionary(x => x.Key, x => x.Select(y => y.user).ToList());
@@ -90,6 +100,33 @@ namespace ChatBirthdayBot {
 
 				string[] args = messageText.ToUpperInvariant().Split(new[] { ' ', '@' }, StringSplitOptions.RemoveEmptyEntries);
 				switch (args[0].ToUpperInvariant()) {
+					case "/BIRTHDAYS" when message.Chat.Type is ChatType.Group or ChatType.Supergroup: {
+						var date = DateTime.UtcNow.AddHours(3);
+						var key = ((byte) date.Month << 5) + (byte) date.Day;
+
+						var birthdays = await context.UserChats
+							.Include(x => x.User)
+							.Where(x => (x.ChatId == message.Chat.Id) && (x.User.BirthdayDay != null) && (x.User.BirthdayMonth != null))
+							.Select(userChat => new {userChat, tempKey = userChat.User.BirthdayMonth * 32 + userChat.User.BirthdayDay})
+							.OrderBy(x => x.tempKey < key ? x.tempKey + 384 : x.tempKey)
+							.Select(x => x.userChat.User)
+							.Take(10)
+							.ToListAsync(cancellationToken: cancellationToken);
+
+						text = string.Join(
+							'\n',
+							birthdays.Select(
+								x => {
+									DateTime birthdayDate = new(x.BirthdayYear ?? 0001, x.BirthdayMonth!.Value, x.BirthdayDay!.Value);
+
+									return $"*{birthdayDate.ToString("d MMM", CultureInfo.CurrentCulture)}* — {x.FirstName}{(x.LastName != null ? " " + x.LastName : "")}{(x.BirthdayYear != null ? $" *({AgeFromDate(birthdayDate) + 1})*" : "")}";
+								}
+							)
+						);
+
+						parseMode = ParseMode.Markdown;
+						break;
+					}
 					case "/BIRTHDAY" when message.Chat.Type is ChatType.Private: {
 						if (currentUser is { BirthdayDay: not null, BirthdayMonth: not null }) {
 							DateTime date = new(currentUser.BirthdayYear ?? 0001, currentUser.BirthdayMonth.Value, currentUser.BirthdayDay.Value);

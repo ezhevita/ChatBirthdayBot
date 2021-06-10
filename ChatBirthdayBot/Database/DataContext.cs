@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 
 #nullable disable
 
@@ -15,7 +16,9 @@ namespace ChatBirthdayBot.Database {
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
 			if (!optionsBuilder.IsConfigured) {
-				optionsBuilder.UseSqlite("Data Source=data.db;");
+				optionsBuilder.UseSqlite("Data Source=data.db");
+				//optionsBuilder.LogTo(Console.WriteLine);
+				//optionsBuilder.EnableSensitiveDataLogging();
 			}
 		}
 
