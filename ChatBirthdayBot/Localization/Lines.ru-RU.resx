@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="BirthdayDate" xml:space="preserve">
+        <value>Ваш день/дата рождения выставлена на {0}. Если это неверно, исправьте её с помощью команды `/setbirthday &lt;ДД-ММ-ГГГГ&gt;`. Если вы не хотите указывать год рождения, используйте формат `&lt;ДД-ММ&gt;`. Для удаления записи из базы данных используйте команду `/removebirthday`.</value>
+    </data>
+    <data name="BirthdayNotSet" xml:space="preserve">
+        <value>Ваш день рождения не выставлен. Задать её можно командой `/setbirthday &lt;ДД-ММ-ГГГГ&gt;`. Если вы не хотите указывать год, используйте формат `&lt;ДД-ММ&gt;`.</value>
+        <comment>{0} will be replaced with a date (in words)</comment>
+    </data>
+    <data name="BirthdayRemoved" xml:space="preserve">
+        <value>Ваш день рождения был удалён.</value>
+    </data>
+    <data name="BirthdaySetFailed" xml:space="preserve">
+        <value>Вы указали неверную дату (или в неверном формате). Пожалуйста, отправьте команду ещё раз с исправленной датой.</value>
+    </data>
+    <data name="BirthdaySetSuccessfully" xml:space="preserve">
+        <value>День рождения успешно добавлен в базу данных!</value>
+    </data>
+</root>

@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBirthdayBot", "ChatBirthdayBot\ChatBirthdayBot.csproj", "{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
