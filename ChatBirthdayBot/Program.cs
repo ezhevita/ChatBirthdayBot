@@ -146,22 +146,24 @@ namespace ChatBirthdayBot {
 
 					case "/SETBIRTHDAY" when (args.Length > 1) && message.Chat.Type is ChatType.Private: {
 						string dateText = args[1];
-						DateTime birthdayDate;
-						if (!DateTime.TryParseExact(dateText, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedBirthdayDate)) {
-							if (!DateTime.TryParseExact(dateText, "dd-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out parsedBirthdayDate)) {
+						if (!DateTime.TryParseExact(dateText, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime birthdayDate)) {
+							if (!DateTime.TryParseExact(dateText, "dd-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate)) {
 								text = Lines.BirthdaySetFailed;
 
 								break;
 							}
 
-							birthdayDate = new DateTime(0001, parsedBirthdayDate.Month, parsedBirthdayDate.Day);
+							birthdayDate = new DateTime(0001, birthdayDate.Month, birthdayDate.Day);
 						} else {
-							birthdayDate = parsedBirthdayDate.Year < 1900 ? new DateTime(0001, parsedBirthdayDate.Month, parsedBirthdayDate.Day) : parsedBirthdayDate;
+							if ((birthdayDate > DateTime.UtcNow.Date) || (birthdayDate.Year < 1900)) {
+								text = Lines.BirthdaySetFailed;
+								break;
+							}
 						}
 
 						currentUser.BirthdayDay = (byte) birthdayDate.Day;
 						currentUser.BirthdayMonth = (byte) birthdayDate.Month;
-						currentUser.BirthdayYear = (ushort) birthdayDate.Year;
+						currentUser.BirthdayYear = birthdayDate.Year == 0001 ? null : (ushort?) birthdayDate.Year;
 
 						text = Lines.BirthdaySetSuccessfully;
 
