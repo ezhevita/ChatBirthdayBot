@@ -119,7 +119,7 @@ namespace ChatBirthdayBot {
 				switch (args[0].ToUpperInvariant()) {
 					case "/BIRTHDAYS" when message.Chat.Type is ChatType.Group or ChatType.Supergroup: {
 						var date = DateTime.UtcNow.AddHours(3);
-						var key = (byte) ((date.Month << 5) + date.Day);
+						var key = (ushort) ((date.Month << 5) + date.Day);
 
 						var birthdays = await context.UserChats
 							.Include(x => x.User)
