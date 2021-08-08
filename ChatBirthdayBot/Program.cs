@@ -19,6 +19,7 @@ using User = ChatBirthdayBot.Database.User;
 
 namespace ChatBirthdayBot {
 	internal static class Program {
+		private static readonly HashSet<UpdateType> AllowedUpdateTypes = new() { UpdateType.Message, UpdateType.ChatMember, UpdateType.MyChatMember };
 		private static TelegramBotClient Bot = null!;
 		private static readonly SemaphoreSlim ShutdownSemaphore = new(0, 1);
 		private static readonly CultureInfo RussianCulture = CultureInfo.GetCultureInfoByIetfLanguageTag("ru-RU");
@@ -66,10 +67,15 @@ namespace ChatBirthdayBot {
 
 		private static Task HandleError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
 			Console.WriteLine(exception);
+			Bot.StartReceiving(new DefaultUpdateHandler(HandleUpdate, HandleError), cancellationToken: cancellationToken);
 			return Task.CompletedTask;
 		}
 
 		private static async Task HandleUpdate(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
+			if (!AllowedUpdateTypes.Contains(update.Type)) {
+				return;
+			}
+
 			Console.WriteLine($@"Update|{JsonConvert.SerializeObject(update)}");
 			DataContext context = new();
 			await using (context.ConfigureAwait(false)) {
@@ -77,13 +83,17 @@ namespace ChatBirthdayBot {
 				await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 			}
 
-			if ((update.Type != UpdateType.Message) || (update.Message.Type != MessageType.Text)) {
+			if ((update.Type != UpdateType.Message) || (update.Message!.Type != MessageType.Text)) {
 				return;
 			}
 
 			Message message = update.Message;
-			string messageText = message.Text;
+			string? messageText = message.Text;
 			if (string.IsNullOrEmpty(messageText) || (messageText[0] != '/')) {
+				return;
+			}
+
+			if (message.From == null) {
 				return;
 			}
 
@@ -93,11 +103,10 @@ namespace ChatBirthdayBot {
 			};
 
 			string text = "";
-			ParseMode parseMode = ParseMode.Default;
 
 			context = new DataContext();
 			try {
-				User? currentUser = await context.Users.FindAsync(message.From.Id).ConfigureAwait(false);
+				User? currentUser = await context.Users.FindAsync(new object[] {message.From.Id}, cancellationToken).ConfigureAwait(false);
 				if (currentUser == null) {
 					return;
 				}
@@ -129,7 +138,6 @@ namespace ChatBirthdayBot {
 							)
 						);
 
-						parseMode = ParseMode.Html;
 						break;
 					}
 					case "/BIRTHDAY" when message.Chat.Type is ChatType.Private: {
@@ -143,8 +151,6 @@ namespace ChatBirthdayBot {
 						} else {
 							text = Lines.BirthdayNotSet;
 						}
-
-						parseMode = ParseMode.Html;
 
 						break;
 					}
@@ -191,7 +197,7 @@ namespace ChatBirthdayBot {
 				await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 				await context.DisposeAsync().ConfigureAwait(false);
 				if (!string.IsNullOrEmpty(text)) {
-					await Bot.SendTextMessageAsync(message.Chat.Id, text, parseMode, replyToMessageId: message.MessageId, cancellationToken: cancellationToken).ConfigureAwait(false);
+					await Bot.SendTextMessageAsync(message.Chat.Id, text, ParseMode.Html, replyToMessageId: message.MessageId, cancellationToken: cancellationToken).ConfigureAwait(false);
 				}
 			}
 		}
@@ -209,7 +215,7 @@ namespace ChatBirthdayBot {
 				TimeSpan.FromDays(1)
 			);
 
-			Bot.StartReceiving(new DefaultUpdateHandler(HandleUpdate, HandleError, new[] { UpdateType.Message, UpdateType.ChatMember, UpdateType.MyChatMember }));
+			Bot.StartReceiving(new DefaultUpdateHandler(HandleUpdate, HandleError));
 
 			await CheckBirthdays().ConfigureAwait(false);
 			await ShutdownSemaphore.WaitAsync().ConfigureAwait(false);
@@ -218,14 +224,14 @@ namespace ChatBirthdayBot {
 
 		private static async Task ProcessDatabaseUpdates(DataContext context, Update update, CancellationToken cancellationToken) {
 			switch (update.Type) {
-				case UpdateType.MyChatMember when update.MyChatMember.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator: {
+				case UpdateType.MyChatMember when update.MyChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator: {
 					Telegram.Bot.Types.Chat chat = update.MyChatMember.Chat;
 					await UpdateChat(context, chat).ConfigureAwait(false);
 
 					break;
 				}
 				case UpdateType.MyChatMember when update.MyChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left: {
-					Telegram.Bot.Types.Chat? chat = update.MyChatMember.Chat;
+					Telegram.Bot.Types.Chat chat = update.MyChatMember.Chat;
 					Chat? dbChat = await context.Chats
 						.Include(x => x.UserChats)
 						.FirstOrDefaultAsync(x => x.Id == chat.Id, cancellationToken)
@@ -238,9 +244,9 @@ namespace ChatBirthdayBot {
 
 					break;
 				}
-				case UpdateType.ChatMember when update.ChatMember.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator: {
-					Telegram.Bot.Types.User? user = update.ChatMember.NewChatMember.User;
-					Telegram.Bot.Types.Chat? chat = update.ChatMember.Chat;
+				case UpdateType.ChatMember when update.ChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator: {
+					Telegram.Bot.Types.User user = update.ChatMember.NewChatMember.User;
+					Telegram.Bot.Types.Chat chat = update.ChatMember.Chat;
 					await UpdateUser(context, user).ConfigureAwait(false);
 					await UpdateChat(context, chat).ConfigureAwait(false);
 					await UpdateUserChat(context, chat, user).ConfigureAwait(false);
@@ -248,9 +254,9 @@ namespace ChatBirthdayBot {
 					break;
 				}
 				case UpdateType.ChatMember when update.ChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left: {
-					Telegram.Bot.Types.User? user = update.ChatMember.NewChatMember.User;
-					Telegram.Bot.Types.Chat? chat = update.ChatMember.Chat;
-					UserChat? participant = await context.UserChats.FindAsync(user.Id, chat.Id).ConfigureAwait(false);
+					Telegram.Bot.Types.User user = update.ChatMember.NewChatMember.User;
+					Telegram.Bot.Types.Chat chat = update.ChatMember.Chat;
+					UserChat? participant = await context.UserChats.FindAsync(new object[] {user.Id, chat.Id}, cancellationToken).ConfigureAwait(false);
 					if (participant != null) {
 						context.UserChats.Remove(participant);
 					}
@@ -260,15 +266,15 @@ namespace ChatBirthdayBot {
 
 					break;
 				}
-				case UpdateType.Message when update.Message.Chat.Type is ChatType.Private: {
-					await UpdateUser(context, update.Message.From).ConfigureAwait(false);
+				case UpdateType.Message when update.Message!.Chat.Type is ChatType.Private: {
+					await UpdateUser(context, update.Message.From!).ConfigureAwait(false);
 
 					break;
 				}
 				case UpdateType.Message when update.Message.Chat.Type is ChatType.Supergroup or ChatType.Group: {
-					await UpdateUser(context, update.Message.From).ConfigureAwait(false);
+					await UpdateUser(context, update.Message.From!).ConfigureAwait(false);
 					await UpdateChat(context, update.Message.Chat).ConfigureAwait(false);
-					await UpdateUserChat(context, update.Message.Chat, update.Message.From).ConfigureAwait(false);
+					await UpdateUserChat(context, update.Message.Chat, update.Message.From!).ConfigureAwait(false);
 
 					break;
 				}

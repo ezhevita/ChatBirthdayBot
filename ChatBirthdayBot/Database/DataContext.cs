@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 #nullable disable
 
@@ -10,9 +9,11 @@ namespace ChatBirthdayBot.Database {
 		public DataContext(DbContextOptions<DataContext> options)
 			: base(options) { }
 
+		// ReSharper disable UnusedAutoPropertyAccessor.Global
 		public virtual DbSet<Chat> Chats { get; set; }
 		public virtual DbSet<User> Users { get; set; }
 		public virtual DbSet<UserChat> UserChats { get; set; }
+		// ReSharper restore UnusedAutoPropertyAccessor.Global
 
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
 			if (!optionsBuilder.IsConfigured) {
