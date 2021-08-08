@@ -59,7 +59,11 @@ namespace ChatBirthdayBot {
 
 			foreach ((Chat chat, List<User> users) in dictionary) {
 				IEnumerable<string> usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{Escape(x.FirstName)}</a>");
-				await Bot.SendTextMessageAsync(chat.Id, string.Join(", ", usernamesToPost) + " - с днём рождения!", ParseMode.Html).ConfigureAwait(false);
+				try {
+					await Bot.SendTextMessageAsync(chat.Id, string.Join(", ", usernamesToPost) + " - с днём рождения!", ParseMode.Html).ConfigureAwait(false);
+				} catch (Exception e) {
+					Console.WriteLine(e);
+				}
 			}
 		}
 
@@ -197,7 +201,11 @@ namespace ChatBirthdayBot {
 				await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 				await context.DisposeAsync().ConfigureAwait(false);
 				if (!string.IsNullOrEmpty(text)) {
-					await Bot.SendTextMessageAsync(message.Chat.Id, text, ParseMode.Html, replyToMessageId: message.MessageId, cancellationToken: cancellationToken).ConfigureAwait(false);
+					try {
+						await Bot.SendTextMessageAsync(message.Chat.Id, text, ParseMode.Html, replyToMessageId: message.MessageId, cancellationToken: cancellationToken).ConfigureAwait(false);
+					} catch (Exception e) {
+						Console.WriteLine(e);
+					}
 				}
 			}
 		}
