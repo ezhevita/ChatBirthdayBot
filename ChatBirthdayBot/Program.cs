@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -42,7 +43,8 @@ namespace ChatBirthdayBot {
 			List<User> todayBirthdays;
 			await using (context.ConfigureAwait(false)) {
 				todayBirthdays = await context.Users
-					.Where(user => (user.BirthdayDay == day) && (user.BirthdayMonth == month) && (user.Chats.Count > 0))
+					.Where(user => (user.BirthdayDay == day) && (user.BirthdayMonth == month))
+					.Where(user => user.Chats.Any())
 					.Include(x => x.Chats)
 					.ToListAsync()
 					.ConfigureAwait(false);
@@ -55,10 +57,12 @@ namespace ChatBirthdayBot {
 				.ToDictionary(x => x.Key, x => x.Select(y => y.user).ToList());
 
 			foreach ((Chat chat, List<User> users) in dictionary) {
-				IEnumerable<string> usernamesToPost = users.Select(x => $"[{x.FirstName}](tg://user?id={x.Id})");
-				await Bot.SendTextMessageAsync(chat.Id, string.Join(", ", usernamesToPost) + " - с днём рождения!", ParseMode.Markdown).ConfigureAwait(false);
+				IEnumerable<string> usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{Escape(x.FirstName)}</a>");
+				await Bot.SendTextMessageAsync(chat.Id, string.Join(", ", usernamesToPost) + " - с днём рождения!", ParseMode.Html).ConfigureAwait(false);
 			}
 		}
+
+		private static string Escape(string message) => HttpUtility.HtmlEncode(message);
 
 		private static Task HandleError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
 			Console.WriteLine(exception);
@@ -102,36 +106,37 @@ namespace ChatBirthdayBot {
 				switch (args[0].ToUpperInvariant()) {
 					case "/BIRTHDAYS" when message.Chat.Type is ChatType.Group or ChatType.Supergroup: {
 						var date = DateTime.UtcNow.AddHours(3);
-						var key = ((byte) date.Month << 5) + (byte) date.Day;
+						var key = (byte) ((date.Month << 5) + date.Day);
 
 						var birthdays = await context.UserChats
 							.Include(x => x.User)
 							.Where(x => (x.ChatId == message.Chat.Id) && (x.User.BirthdayDay != null) && (x.User.BirthdayMonth != null))
 							.Select(userChat => new {userChat, tempKey = userChat.User.BirthdayMonth * 32 + userChat.User.BirthdayDay})
-							.OrderBy(x => x.tempKey < key ? x.tempKey + 384 : x.tempKey)
+							.OrderBy(x => x.tempKey < key ? x.tempKey + 12 * 32 : x.tempKey)
 							.Select(x => x.userChat.User)
 							.Take(10)
-							.ToListAsync(cancellationToken: cancellationToken);
+							.ToListAsync(cancellationToken: cancellationToken)
+							.ConfigureAwait(false);
 
 						text = string.Join(
 							'\n',
 							birthdays.Select(
 								x => {
-									DateTime birthdayDate = new(x.BirthdayYear ?? 0001, x.BirthdayMonth!.Value, x.BirthdayDay!.Value);
+									DateTime birthdayDate = new(x.BirthdayYear ?? 0004, x.BirthdayMonth!.Value, x.BirthdayDay!.Value);
 
-									return $"*{birthdayDate.ToString("d MMM", CultureInfo.CurrentCulture)}* — {x.FirstName}{(x.LastName != null ? " " + x.LastName : "")}{(x.BirthdayYear != null ? $" *({AgeFromDate(birthdayDate) + 1})*" : "")}";
+									return $"<b>{birthdayDate.ToString("d MMM", CultureInfo.CurrentCulture)}</b> — {Escape(x.FirstName)}{(x.LastName != null ? " " + Escape(x.LastName) : "")}{(x.BirthdayYear != null ? $" <b>({AgeFromDate(birthdayDate) + 1})</b>" : "")}";
 								}
 							)
 						);
 
-						parseMode = ParseMode.Markdown;
+						parseMode = ParseMode.Html;
 						break;
 					}
 					case "/BIRTHDAY" when message.Chat.Type is ChatType.Private: {
 						if (currentUser is { BirthdayDay: not null, BirthdayMonth: not null }) {
-							DateTime date = new(currentUser.BirthdayYear ?? 0001, currentUser.BirthdayMonth.Value, currentUser.BirthdayDay.Value);
+							DateTime date = new(currentUser.BirthdayYear ?? 0004, currentUser.BirthdayMonth.Value, currentUser.BirthdayDay.Value);
 							text = string.Format(
-								CultureInfo.CurrentCulture, Lines.BirthdayDate, date.Year == 0001
+								CultureInfo.CurrentCulture, Lines.BirthdayDate, date.Year == 0004
 									? date.ToString("M", CultureInfo.CurrentCulture)
 									: date.ToLongDateString().Replace(CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(date.DayOfWeek), "").TrimStart(',', ' ').TrimEnd('.')
 							);
@@ -139,7 +144,7 @@ namespace ChatBirthdayBot {
 							text = Lines.BirthdayNotSet;
 						}
 
-						parseMode = ParseMode.Markdown;
+						parseMode = ParseMode.Html;
 
 						break;
 					}
@@ -147,15 +152,13 @@ namespace ChatBirthdayBot {
 					case "/SETBIRTHDAY" when (args.Length > 1) && message.Chat.Type is ChatType.Private: {
 						string dateText = args[1];
 						if (!DateTime.TryParseExact(dateText, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime birthdayDate)) {
-							if (!DateTime.TryParseExact(dateText, "dd-MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate)) {
+							if (!DateTime.TryParseExact(dateText + "-0004", "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate)) {
 								text = Lines.BirthdaySetFailed;
 
 								break;
 							}
-
-							birthdayDate = new DateTime(0001, birthdayDate.Month, birthdayDate.Day);
 						} else {
-							if ((birthdayDate > DateTime.UtcNow.Date) || (birthdayDate.Year < 1900)) {
+							if ((birthdayDate.AddYears(1) > DateTime.UtcNow.Date) || (birthdayDate.Year < 1900)) {
 								text = Lines.BirthdaySetFailed;
 								break;
 							}
@@ -163,7 +166,7 @@ namespace ChatBirthdayBot {
 
 						currentUser.BirthdayDay = (byte) birthdayDate.Day;
 						currentUser.BirthdayMonth = (byte) birthdayDate.Month;
-						currentUser.BirthdayYear = birthdayDate.Year == 0001 ? null : (ushort?) birthdayDate.Year;
+						currentUser.BirthdayYear = birthdayDate.Year == 0004 ? null : (ushort?) birthdayDate.Year;
 
 						text = Lines.BirthdaySetSuccessfully;
 
@@ -193,10 +196,14 @@ namespace ChatBirthdayBot {
 			}
 		}
 
+		private static async void CheckBirthdaysTimer(object? state) {
+			await CheckBirthdays().ConfigureAwait(false);
+		}
+
 		private static async Task Main() {
 			Bot = new TelegramBotClient(await File.ReadAllTextAsync("token.txt").ConfigureAwait(false));
 			Timer birthdayTimer = new(
-				async _ => await CheckBirthdays().ConfigureAwait(false),
+				CheckBirthdaysTimer,
 				null,
 				DateTime.Today.AddDays(1).AddHours(3) - DateTime.UtcNow,
 				TimeSpan.FromDays(1)
@@ -219,7 +226,11 @@ namespace ChatBirthdayBot {
 				}
 				case UpdateType.MyChatMember when update.MyChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left: {
 					Telegram.Bot.Types.Chat? chat = update.MyChatMember.Chat;
-					Chat? dbChat = await context.Chats.Include(x => x.UserChats).FirstOrDefaultAsync(x => x.Id == chat.Id, cancellationToken).ConfigureAwait(false);
+					Chat? dbChat = await context.Chats
+						.Include(x => x.UserChats)
+						.FirstOrDefaultAsync(x => x.Id == chat.Id, cancellationToken)
+						.ConfigureAwait(false);
+					
 					if (dbChat != null) {
 						dbChat.UserChats.Clear();
 						context.Chats.Remove(dbChat);

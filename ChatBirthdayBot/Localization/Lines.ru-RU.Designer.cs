@@ -9,6 +9,9 @@
 //------------------------------------------------------------------------------
 
 namespace ChatBirthdayBot.Localization {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -36,7 +39,7 @@ namespace ChatBirthdayBot.Localization {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ChatBirthdayBot.Lines.ru-RU", typeof(Lines_ru_RU).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ChatBirthdayBot.Localization.Lines.ru-RU", typeof(Lines_ru_RU).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -58,7 +61,7 @@ namespace ChatBirthdayBot.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ваш день/дата рождения выставлена на {0}. Если это неверно, исправьте её с помощью команды `/setbirthday &lt;ДД-ММ-ГГГГ&gt;`. Если вы не хотите указывать год рождения, используйте формат `&lt;ДД-ММ&gt;`. Для удаления записи из базы данных используйте команду `/removebirthday`..
+        ///   Looks up a localized string similar to Ваш день/дата рождения выставлена на {0}. Если это неверно, исправьте её с помощью команды &lt;pre&gt;/setbirthday &amp;lt;ДД-ММ-ГГГГ&amp;gt;&lt;/pre&gt;. Если вы не хотите указывать год рождения, используйте формат &lt;pre&gt;&amp;lt;ДД-ММ&amp;gt;&lt;/pre&gt;. Для удаления записи из базы данных используйте команду &lt;pre&gt;/removebirthday&lt;/pre&gt;..
         /// </summary>
         internal static string BirthdayDate {
             get {
@@ -67,7 +70,7 @@ namespace ChatBirthdayBot.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ваш день рождения не выставлен. Задать её можно командой `/setbirthday &lt;ДД-ММ-ГГГГ&gt;`. Если вы не хотите указывать год, используйте формат `&lt;ДД-ММ&gt;`..
+        ///   Looks up a localized string similar to Ваш день рождения не выставлен. Задать её можно командой &lt;pre&gt;/setbirthday &amp;lt;ДД-ММ-ГГГГ&amp;gt;&lt;/pre&gt;. Если вы не хотите указывать год, используйте формат &lt;pre&gt;&amp;lt;ДД-ММ&amp;gt;&lt;/pre&gt;..
         /// </summary>
         internal static string BirthdayNotSet {
             get {
