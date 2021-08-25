@@ -25,8 +25,8 @@ namespace ChatBirthdayBot {
 		private static readonly CultureInfo RussianCulture = CultureInfo.GetCultureInfoByIetfLanguageTag("ru-RU");
 
 		private static int AgeFromDate(DateTime birthdate) {
-			var today = DateTime.Today;
-			var age = today.Year - birthdate.Year;
+			DateTime today = DateTime.Today;
+			int age = today.Year - birthdate.Year;
 			if (birthdate.Date > today.AddYears(-age)) {
 				age--;
 			}
@@ -59,6 +59,7 @@ namespace ChatBirthdayBot {
 
 			foreach ((Chat chat, List<User> users) in dictionary) {
 				IEnumerable<string> usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{Escape(x.FirstName)}</a>");
+
 				try {
 					await Bot.SendTextMessageAsync(chat.Id, string.Join(", ", usernamesToPost) + " - с днём рождения!", ParseMode.Html).ConfigureAwait(false);
 				} catch (Exception e) {
@@ -118,10 +119,10 @@ namespace ChatBirthdayBot {
 				string[] args = messageText.ToUpperInvariant().Split(new[] { ' ', '@' }, StringSplitOptions.RemoveEmptyEntries);
 				switch (args[0].ToUpperInvariant()) {
 					case "/BIRTHDAYS" when message.Chat.Type is ChatType.Group or ChatType.Supergroup: {
-						var date = DateTime.UtcNow.AddHours(3);
-						var key = (ushort) ((date.Month << 5) + date.Day);
+						DateTime date = DateTime.UtcNow.AddHours(3);
+						ushort key = (ushort) ((date.Month << 5) + date.Day);
 
-						var birthdays = await context.UserChats
+						List<User>? birthdays = await context.UserChats
 							.Include(x => x.User)
 							.Where(x => (x.ChatId == message.Chat.Id) && (x.User.BirthdayDay != null) && (x.User.BirthdayMonth != null))
 							.Select(userChat => new {userChat, tempKey = userChat.User.BirthdayMonth * 32 + userChat.User.BirthdayDay})
@@ -200,6 +201,7 @@ namespace ChatBirthdayBot {
 			} finally {
 				await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 				await context.DisposeAsync().ConfigureAwait(false);
+
 				if (!string.IsNullOrEmpty(text)) {
 					try {
 						await Bot.SendTextMessageAsync(message.Chat.Id, text, ParseMode.Html, replyToMessageId: message.MessageId, cancellationToken: cancellationToken).ConfigureAwait(false);
