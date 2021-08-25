@@ -61,7 +61,7 @@ namespace ChatBirthdayBot.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ваш день/дата рождения выставлена на {0}. Если это неверно, исправьте её с помощью команды &lt;pre&gt;/setbirthday &amp;lt;ДД-ММ-ГГГГ&amp;gt;&lt;/pre&gt;. Если вы не хотите указывать год рождения, используйте формат &lt;pre&gt;&amp;lt;ДД-ММ&amp;gt;&lt;/pre&gt;. Для удаления записи из базы данных используйте команду &lt;pre&gt;/removebirthday&lt;/pre&gt;..
+        ///   Looks up a localized string similar to Ваш день/дата рождения выставлена на {0}. Если это неверно, исправьте её с помощью команды &lt;code&gt;/setbirthday &amp;lt;ДД-ММ-ГГГГ&amp;gt;&lt;/code&gt;. Если вы не хотите указывать год рождения, используйте формат &lt;code&gt;&amp;lt;ДД-ММ&amp;gt;&lt;/code&gt;. Для удаления записи из базы данных используйте команду &lt;code&gt;/removebirthday&lt;/code&gt;..
         /// </summary>
         internal static string BirthdayDate {
             get {
@@ -70,7 +70,7 @@ namespace ChatBirthdayBot.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ваш день рождения не выставлен. Задать её можно командой &lt;pre&gt;/setbirthday &amp;lt;ДД-ММ-ГГГГ&amp;gt;&lt;/pre&gt;. Если вы не хотите указывать год, используйте формат &lt;pre&gt;&amp;lt;ДД-ММ&amp;gt;&lt;/pre&gt;..
+        ///   Looks up a localized string similar to Ваш день рождения не выставлен. Задать её можно командой &lt;code&gt;/setbirthday &amp;lt;ДД-ММ-ГГГГ&amp;gt;&lt;/code&gt;. Если вы не хотите указывать год, используйте формат &lt;code&gt;&amp;lt;ДД-ММ&amp;gt;&lt;/code&gt;..
         /// </summary>
         internal static string BirthdayNotSet {
             get {
