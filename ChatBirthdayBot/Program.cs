@@ -61,7 +61,8 @@ namespace ChatBirthdayBot {
 				IEnumerable<string> usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{Escape(x.FirstName)}</a>");
 
 				try {
-					await Bot.SendTextMessageAsync(chat.Id, string.Join(", ", usernamesToPost) + " - с днём рождения!", ParseMode.Html).ConfigureAwait(false);
+					Message message = await Bot.SendTextMessageAsync(chat.Id, string.Join(", ", usernamesToPost) + " - с днём рождения!", ParseMode.Html).ConfigureAwait(false);
+					await Bot.PinChatMessageAsync(chat.Id, message.MessageId, false).ConfigureAwait(false);
 				} catch (Exception e) {
 					Console.WriteLine(e);
 				}
