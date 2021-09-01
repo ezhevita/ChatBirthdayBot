@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Web;
 using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
-using Microsoft.EntityFrameworkCore;
 using Telegram.Bot;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
@@ -23,6 +22,7 @@ namespace ChatBirthdayBot {
 		private static readonly Timer CacheCleaner = new(CleanCache, null, TimeSpan.FromHours(1), TimeSpan.FromHours(1));
 		private static readonly ConcurrentDictionary<long, DateTime> LastChatSentMessage = new();
 		private static readonly ConcurrentDictionary<long, int> LastSentBirthdaysMessage = new();
+		private static IRepository Repository = null!;
 		private static readonly SemaphoreSlim ShutdownSemaphore = new(0, 1);
 		private static readonly CultureInfo RussianCulture = CultureInfo.GetCultureInfoByIetfLanguageTag("ru-RU");
 
@@ -44,19 +44,7 @@ namespace ChatBirthdayBot {
 		private static async Task CheckBirthdays() {
 			DateTime currentDate = DateTime.UtcNow.Date;
 
-			byte month = (byte) currentDate.Month;
-			byte day = (byte) currentDate.Day;
-
-			DataContext context = new();
-			List<UserRecord> todayBirthdays;
-			await using (context.ConfigureAwait(false)) {
-				todayBirthdays = await context.Users
-					.Where(user => (user.BirthdayDay == day) && (user.BirthdayMonth == month))
-					.Where(user => user.Chats.Any())
-					.Include(x => x.Chats)
-					.ToListAsync()
-					.ConfigureAwait(false);
-			}
+			List<UserRecord> todayBirthdays = await Repository.GetBirthdaysByDate(currentDate).ConfigureAwait(false);
 
 			Dictionary<ChatRecord, List<UserRecord>> dictionary = todayBirthdays
 				.Select(user => user.Chats.Select(chat => new { chat, user }))
@@ -165,11 +153,7 @@ namespace ChatBirthdayBot {
 			}
 
 			LogUpdate(update);
-			DataContext context = new();
-			await using (context.ConfigureAwait(false)) {
-				await ProcessDatabaseUpdates(context, update, cancellationToken).ConfigureAwait(false);
-				await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-			}
+			await Repository.ProcessDatabaseUpdates(update, cancellationToken).ConfigureAwait(false);
 
 			if ((update.Type != UpdateType.Message) || (update.Message!.Type != MessageType.Text)) {
 				return;
@@ -201,9 +185,8 @@ namespace ChatBirthdayBot {
 
 			LastChatSentMessage[message.Chat.Id] = message.Date;
 
-			context = new DataContext();
 			try {
-				UserRecord? currentUser = await context.Users.FindAsync(new object[] {message.From.Id}, cancellationToken).ConfigureAwait(false);
+				var currentUser = await Repository.GetUserByID(message.From.Id, cancellationToken).ConfigureAwait(false);
 				if (currentUser == null) {
 					return;
 				}
@@ -211,9 +194,6 @@ namespace ChatBirthdayBot {
 				string[] args = messageText.ToUpperInvariant().Split(new[] { ' ', '@' }, StringSplitOptions.RemoveEmptyEntries);
 				switch (args[0].ToUpperInvariant()) {
 					case "/BIRTHDAYS" when message.Chat.Type is ChatType.Group or ChatType.Supergroup: {
-						DateTime date = DateTime.UtcNow.AddHours(3);
-						ushort key = (ushort) ((date.Month << 5) + date.Day);
-						
 						if (LastSentBirthdaysMessage.TryGetValue(message.Chat.Id, out int messageID)) {
 							_ = Task.Run(async () => {
 								try {
@@ -224,15 +204,7 @@ namespace ChatBirthdayBot {
 							}, cancellationToken);
 						}
 
-						List<UserRecord>? birthdays = await context.UserChats
-							.Include(x => x.User)
-							.Where(x => (x.ChatId == message.Chat.Id) && (x.User.BirthdayDay != null) && (x.User.BirthdayMonth != null))
-							.Select(userChat => new {userChat, tempKey = userChat.User.BirthdayMonth * 32 + userChat.User.BirthdayDay})
-							.OrderBy(x => x.tempKey < key ? x.tempKey + 12 * 32 : x.tempKey)
-							.Select(x => x.userChat.User)
-							.Take(10)
-							.ToListAsync(cancellationToken: cancellationToken)
-							.ConfigureAwait(false);
+						List<UserRecord> birthdays = await Repository.GetNearestBirthdaysForChat(message.Chat.Id, cancellationToken).ConfigureAwait(false);
 
 						text = string.Join(
 							'\n',
@@ -281,9 +253,7 @@ namespace ChatBirthdayBot {
 							}
 						}
 
-						currentUser.BirthdayDay = (byte) birthdayDate.Day;
-						currentUser.BirthdayMonth = (byte) birthdayDate.Month;
-						currentUser.BirthdayYear = birthdayDate.Year == 0004 ? null : (ushort?) birthdayDate.Year;
+						await Repository.SetUserBirthday(currentUser.Id, birthdayDate.Year == 0004 ? null : (ushort?)birthdayDate.Year, (byte)birthdayDate.Month, (byte)birthdayDate.Day, cancellationToken).ConfigureAwait(false);
 
 						text = Lines.BirthdaySetSuccessfully;
 
@@ -292,9 +262,7 @@ namespace ChatBirthdayBot {
 
 					case "/REMOVEBIRTHDAY" when message.Chat.Type is ChatType.Private: {
 						if (currentUser.BirthdayDay != null) {
-							currentUser.BirthdayDay = null;
-							currentUser.BirthdayMonth = null;
-							currentUser.BirthdayYear = null;
+							await Repository.SetUserBirthday(currentUser.Id, null, null, null, cancellationToken).ConfigureAwait(false);
 
 							text = Lines.BirthdayRemoved;
 						} else {
@@ -311,9 +279,6 @@ namespace ChatBirthdayBot {
 						break;
 				}
 			} finally {
-				await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-				await context.DisposeAsync().ConfigureAwait(false);
-
 				if (!string.IsNullOrEmpty(text)) {
 					Message? sentMessage = null;
 					try {
@@ -342,10 +307,7 @@ namespace ChatBirthdayBot {
 				TimeSpan.FromDays(1)
 			);
 
-			DataContext context = new();
-			await using (context.ConfigureAwait(false)) {
-				await context.Database.MigrateAsync().ConfigureAwait(false);
-			}
+			Repository = await DatabaseRepository.CreateAsync().ConfigureAwait(false);
 
 			Bot.StartReceiving(new DefaultUpdateHandler(HandleUpdate, HandleError));
 
@@ -353,109 +315,6 @@ namespace ChatBirthdayBot {
 			await ShutdownSemaphore.WaitAsync().ConfigureAwait(false);
 			await birthdayTimer.DisposeAsync().ConfigureAwait(false);
 			await CacheCleaner.DisposeAsync().ConfigureAwait(false);
-		}
-
-		private static async Task ProcessDatabaseUpdates(DataContext context, Update update, CancellationToken cancellationToken) {
-			switch (update.Type) {
-				case UpdateType.MyChatMember when update.MyChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator: {
-					Chat chat = update.MyChatMember.Chat;
-					await UpdateChat(context, chat).ConfigureAwait(false);
-
-					break;
-				}
-				case UpdateType.MyChatMember when update.MyChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left: {
-					Chat chat = update.MyChatMember.Chat;
-					ChatRecord? dbChat = await context.Chats
-						.Include(x => x.UserChats)
-						.FirstOrDefaultAsync(x => x.Id == chat.Id, cancellationToken)
-						.ConfigureAwait(false);
-					
-					if (dbChat != null) {
-						dbChat.UserChats.Clear();
-						context.Chats.Remove(dbChat);
-					}
-
-					break;
-				}
-				case UpdateType.ChatMember when update.ChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator: {
-					User user = update.ChatMember.NewChatMember.User;
-					Chat chat = update.ChatMember.Chat;
-					await UpdateUser(context, user).ConfigureAwait(false);
-					await UpdateChat(context, chat).ConfigureAwait(false);
-					await UpdateUserChat(context, chat, user).ConfigureAwait(false);
-
-					break;
-				}
-				case UpdateType.ChatMember when update.ChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left: {
-					User user = update.ChatMember.NewChatMember.User;
-					Chat chat = update.ChatMember.Chat;
-					UserChat? participant = await context.UserChats.FindAsync(new object[] {user.Id, chat.Id}, cancellationToken).ConfigureAwait(false);
-					if (participant != null) {
-						context.UserChats.Remove(participant);
-					}
-
-					await UpdateUser(context, user).ConfigureAwait(false);
-					await UpdateChat(context, chat).ConfigureAwait(false);
-
-					break;
-				}
-				case UpdateType.Message when update.Message!.Chat.Type is ChatType.Private: {
-					await UpdateUser(context, update.Message.From!).ConfigureAwait(false);
-
-					break;
-				}
-				case UpdateType.Message when update.Message.Chat.Type is ChatType.Supergroup or ChatType.Group: {
-					await UpdateUser(context, update.Message.From!).ConfigureAwait(false);
-					await UpdateChat(context, update.Message.Chat).ConfigureAwait(false);
-					await UpdateUserChat(context, update.Message.Chat, update.Message.From!).ConfigureAwait(false);
-
-					break;
-				}
-			}
-		}
-
-		private static async Task UpdateChat(DataContext context, Chat chat) {
-			ChatRecord? currentChat = await context.Chats.FindAsync(chat.Id).ConfigureAwait(false);
-			if (currentChat != null) {
-				currentChat.Name = chat.Title;
-			} else {
-				currentChat = new ChatRecord {
-					Id = chat.Id,
-					Name = chat.Title
-				};
-
-				await context.Chats.AddAsync(currentChat).ConfigureAwait(false);
-			}
-		}
-
-		private static async Task UpdateUser(DataContext context, User user) {
-			UserRecord? currentUser = await context.Users.FindAsync(user.Id).ConfigureAwait(false);
-			if (currentUser != null) {
-				currentUser.FirstName = user.FirstName;
-				currentUser.LastName = user.LastName;
-			} else {
-				currentUser = new UserRecord {
-					Id = user.Id,
-					FirstName = user.FirstName,
-					LastName = user.LastName,
-					Username = user.Username
-				};
-
-				await context.Users.AddAsync(currentUser).ConfigureAwait(false);
-			}
-		}
-
-		private static async Task UpdateUserChat(DataContext context, Chat chat, User user) {
-			bool participantExists = await context.UserChats.AnyAsync(x => (x.ChatId == chat.Id) && (x.UserId == user.Id)).ConfigureAwait(false);
-			if (!participantExists) {
-				UserChat participant = new() {
-					ChatId = chat.Id,
-					UserId = user.Id,
-					IsPublic = false
-				};
-
-				await context.UserChats.AddAsync(participant).ConfigureAwait(false);
-			}
 		}
 	}
 }
