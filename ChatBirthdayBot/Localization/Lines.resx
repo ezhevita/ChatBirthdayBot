@@ -19,11 +19,11 @@
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
     <data name="BirthdayDate" xml:space="preserve">
-        <value>Your birthday is set on {0}. If this is incorrect, please correct it by using the &lt;code&gt;/setbirthday &amp;lt;DD-MM-YYYY&amp;gt;&lt;/code&gt; command. Or if you don't want to set your birthday year, just use the &lt;code&gt;&amp;lt;DD-MM&amp;gt;&lt;/code&gt; format. To remove it from the database, use the &lt;code&gt;/removebirthday&lt;/code&gt; command.</value>
+        <value>Your birthday is set on {0}. If this is incorrect, please correct it by using the &lt;code&gt;/setbirthday DD-MM-YYYY&lt;/code&gt; command. Or if you don't want to set your birthday year, just use the &lt;code&gt;DD-MM&lt;/code&gt; format. To remove it from the database, use the &lt;code&gt;/removebirthday&lt;/code&gt; command.</value>
         <comment>{0} will be replaced with a date (in words)</comment>
     </data>
     <data name="BirthdayNotSet" xml:space="preserve">
-        <value>Your birthday is currently not set. You can set it by using &lt;code&gt;/setbirthday &amp;lt;DD-MM-YYYY&amp;gt;&lt;/code&gt; command. If you don't want to set your birthday year, just use the &lt;code&gt;&amp;lt;DD-MM&amp;gt;&lt;/code&gt; format.</value>
+        <value>Your birthday is currently not set. You can set it by using &lt;code&gt;/setbirthday DD-MM-YYYY&lt;/code&gt; command. If you don't want to set your birthday year, just use the &lt;code&gt;DD-MM&lt;/code&gt; format.</value>
     </data>
     <data name="BirthdayRemoved" xml:space="preserve">
         <value>Your birthday is removed from the database.</value>

@@ -247,7 +247,11 @@ namespace ChatBirthdayBot {
 
 						break;
 					}
-					case "/BIRTHDAY" when message.Chat.Type is ChatType.Private: {
+					case "/BIRTHDAY": {
+						if (message.Chat.Type != ChatType.Private) {
+							break;
+						}
+
 						if (currentUser is { BirthdayDay: not null, BirthdayMonth: not null }) {
 							DateTime date = new(currentUser.BirthdayYear ?? 0004, currentUser.BirthdayMonth.Value, currentUser.BirthdayDay.Value);
 							text = string.Format(
@@ -299,6 +303,12 @@ namespace ChatBirthdayBot {
 
 						break;
 					}
+					default:
+						if (message.Chat.Type is ChatType.Private) {
+							goto case "/BIRTHDAY";
+						}
+
+						break;
 				}
 			} finally {
 				await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

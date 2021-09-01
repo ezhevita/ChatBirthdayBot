@@ -61,7 +61,7 @@ namespace ChatBirthdayBot.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your birthday is set on {0}. If this is incorrect, please correct it by using the &lt;code&gt;/setbirthday &amp;lt;DD-MM-YYYY&amp;gt;&lt;/code&gt; command. Or if you don&apos;t want to set your birthday year, just use the &lt;code&gt;&amp;lt;DD-MM&amp;gt;&lt;/code&gt; format. To remove it from the database, use the &lt;code&gt;/removebirthday&lt;/code&gt; command..
+        ///   Looks up a localized string similar to Your birthday is set on {0}. If this is incorrect, please correct it by using the &lt;code&gt;/setbirthday DD-MM-YYYY&lt;/code&gt; command. Or if you don&apos;t want to set your birthday year, just use the &lt;code&gt;DD-MM&lt;/code&gt; format. To remove it from the database, use the &lt;code&gt;/removebirthday&lt;/code&gt; command..
         /// </summary>
         internal static string BirthdayDate {
             get {
@@ -70,7 +70,7 @@ namespace ChatBirthdayBot.Localization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Your birthday is currently not set. You can set it by using &lt;code&gt;/setbirthday &amp;lt;DD-MM-YYYY&amp;gt;&lt;/code&gt; command. If you don&apos;t want to set your birthday year, just use the &lt;code&gt;&amp;lt;DD-MM&amp;gt;&lt;/code&gt; format..
+        ///   Looks up a localized string similar to Your birthday is currently not set. You can set it by using &lt;code&gt;/setbirthday DD-MM-YYYY&lt;/code&gt; command. If you don&apos;t want to set your birthday year, just use the &lt;code&gt;DD-MM&lt;/code&gt; format..
         /// </summary>
         internal static string BirthdayNotSet {
             get {
