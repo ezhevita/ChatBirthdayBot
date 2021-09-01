@@ -3,11 +3,11 @@
 #nullable disable
 
 namespace ChatBirthdayBot.Database {
-	public class Chat {
+	public class ChatRecord {
 		public long Id { get; set; }
 		public string Name { get; set; }
 
-		public ICollection<User> Users { get; set; }
+		public ICollection<UserRecord> Users { get; set; }
 		public List<UserChat> UserChats { get; set; }
 	}
 }

@@ -10,8 +10,8 @@ namespace ChatBirthdayBot.Database {
 			: base(options) { }
 
 		// ReSharper disable UnusedAutoPropertyAccessor.Global
-		public virtual DbSet<Chat> Chats { get; set; }
-		public virtual DbSet<User> Users { get; set; }
+		public virtual DbSet<ChatRecord> Chats { get; set; }
+		public virtual DbSet<UserRecord> Users { get; set; }
 		public virtual DbSet<UserChat> UserChats { get; set; }
 		// ReSharper restore UnusedAutoPropertyAccessor.Global
 
@@ -24,7 +24,7 @@ namespace ChatBirthdayBot.Database {
 		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder) {
-			modelBuilder.Entity<Chat>(
+			modelBuilder.Entity<ChatRecord>(
 				entity => {
 					entity.ToTable("Chat");
 
@@ -37,7 +37,7 @@ namespace ChatBirthdayBot.Database {
 				}
 			);
 
-			modelBuilder.Entity<User>(
+			modelBuilder.Entity<UserRecord>(
 				entity => {
 					entity.ToTable("User");
 
