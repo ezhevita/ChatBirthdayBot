@@ -28,7 +28,7 @@ namespace ChatBirthdayBot {
 
 		private static int AgeFromDate(DateTime birthdate) {
 			DateTime today = DateTime.Today;
-			byte age = (byte) (today.Year - birthdate.Year);
+			byte age = (byte)(today.Year - birthdate.Year);
 			if (birthdate.Date > today.AddYears(-age)) {
 				age--;
 			}
@@ -36,9 +36,20 @@ namespace ChatBirthdayBot {
 			return age;
 		}
 
-		private static void CleanCache(object? state) {
-			LastSentBirthdaysMessage.Clear();
-			LastSentBirthdaysMessage.Clear();
+		private static void AppendUser(StringBuilder stringBuilder, User user) {
+			stringBuilder.Append(user.Id);
+			stringBuilder.Append(" (");
+			if (!string.IsNullOrEmpty(user.Username)) {
+				stringBuilder.Append(user.Username);
+			} else {
+				stringBuilder.Append(user.FirstName);
+				if (!string.IsNullOrEmpty(user.LastName)) {
+					stringBuilder.Append(' ');
+					stringBuilder.Append(user.LastName);
+				}
+			}
+
+			stringBuilder.Append(')');
 		}
 
 		private static async Task CheckBirthdays() {
@@ -64,89 +75,24 @@ namespace ChatBirthdayBot {
 			}
 		}
 
+		private static async void CheckBirthdaysTimer(object? state) {
+			await CheckBirthdays().ConfigureAwait(false);
+		}
+
+		private static void CleanCache(object? state) {
+			LastSentBirthdaysMessage.Clear();
+			LastSentBirthdaysMessage.Clear();
+		}
+
 		private static string Escape(string message) => HttpUtility.HtmlEncode(message);
 
 		private static Task HandleError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
 			Console.WriteLine(exception);
 			Bot.StartReceiving(new DefaultUpdateHandler(HandleUpdate, HandleError), cancellationToken: cancellationToken);
+
 			return Task.CompletedTask;
 		}
 
-		private static void AppendUser(StringBuilder stringBuilder, User user) {
-			stringBuilder.Append(user.Id);
-			stringBuilder.Append(" (");
-			if (!string.IsNullOrEmpty(user.Username)) {
-				stringBuilder.Append(user.Username);
-			} else {
-				stringBuilder.Append(user.FirstName);
-				if (!string.IsNullOrEmpty(user.LastName)) {
-					stringBuilder.Append(' ');
-					stringBuilder.Append(user.LastName);
-				}
-			}
-						
-			stringBuilder.Append(')');
-		}
-		
-		private static void LogUpdate(Update update) {
-			StringBuilder logMessageBuilder = new();
-			logMessageBuilder.Append(update.Type.ToString());
-			logMessageBuilder.Append('|');
-
-			switch (update.Type) {
-				case UpdateType.Message:
-					Message message = update.Message!;
-
-					logMessageBuilder.Append(message.Type.ToString());
-					logMessageBuilder.Append('|');
-					logMessageBuilder.Append(message.Chat.Type.ToString());
-					if (message.Chat.Type != ChatType.Private) {
-						logMessageBuilder.Append('|');
-						logMessageBuilder.Append(message.Chat.Id);
-						logMessageBuilder.Append(" (");
-						logMessageBuilder.Append(message.Chat.Title);
-						logMessageBuilder.Append(')');
-					}
-
-					User? from = message.From;
-					if (from != null) {
-						logMessageBuilder.Append('|');
-						AppendUser(logMessageBuilder, from);
-					}
-
-					if (message.Type == MessageType.Text) {
-						logMessageBuilder.Append('|');
-						logMessageBuilder.Append(message.Text);
-					}
-					
-					break;
-				case UpdateType.ChatMember:
-					ChatMemberUpdated chatMember = update.ChatMember!;
-
-					logMessageBuilder.Append(chatMember.Chat.Id);
-					logMessageBuilder.Append(" (");
-					logMessageBuilder.Append(chatMember.Chat.Title);
-					logMessageBuilder.Append(")|");
-					logMessageBuilder.Append(chatMember.NewChatMember.Status.ToString());
-					logMessageBuilder.Append('|');
-					AppendUser(logMessageBuilder, chatMember.NewChatMember.User);
-
-					break;
-				case UpdateType.MyChatMember:
-					ChatMemberUpdated myChatMember = update.MyChatMember!;
-					
-					logMessageBuilder.Append(myChatMember.Chat.Id);
-					logMessageBuilder.Append(" (");
-					logMessageBuilder.Append(myChatMember.Chat.Title);
-					logMessageBuilder.Append(")|");
-					logMessageBuilder.Append(myChatMember.NewChatMember.Status.ToString());
-
-					break;
-			}
-
-			Console.WriteLine(logMessageBuilder.ToString());
-		}
-		
 		private static async Task HandleUpdate(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken) {
 			if (!AllowedUpdateTypes.Contains(update.Type)) {
 				return;
@@ -186,7 +132,7 @@ namespace ChatBirthdayBot {
 			LastChatSentMessage[message.Chat.Id] = message.Date;
 
 			try {
-				var currentUser = await Repository.GetUserByID(message.From.Id, cancellationToken).ConfigureAwait(false);
+				UserRecord? currentUser = await Repository.GetUserByID(message.From.Id, cancellationToken).ConfigureAwait(false);
 				if (currentUser == null) {
 					return;
 				}
@@ -195,13 +141,15 @@ namespace ChatBirthdayBot {
 				switch (args[0].ToUpperInvariant()) {
 					case "/BIRTHDAYS" when message.Chat.Type is ChatType.Group or ChatType.Supergroup: {
 						if (LastSentBirthdaysMessage.TryGetValue(message.Chat.Id, out int messageID)) {
-							_ = Task.Run(async () => {
-								try {
-									await Bot.DeleteMessageAsync(message.Chat.Id, messageID, cancellationToken).ConfigureAwait(false);
-								} catch {
-									// ignored
-								}
-							}, cancellationToken);
+							_ = Task.Run(
+								async () => {
+									try {
+										await Bot.DeleteMessageAsync(message.Chat.Id, messageID, cancellationToken).ConfigureAwait(false);
+									} catch {
+										// ignored
+									}
+								}, cancellationToken
+							);
 						}
 
 						List<UserRecord> birthdays = await Repository.GetNearestBirthdaysForChat(message.Chat.Id, cancellationToken).ConfigureAwait(false);
@@ -249,6 +197,7 @@ namespace ChatBirthdayBot {
 						} else {
 							if ((birthdayDate.AddYears(1) > DateTime.UtcNow.Date) || (birthdayDate.Year < 1900)) {
 								text = Lines.BirthdaySetFailed;
+
 								break;
 							}
 						}
@@ -294,8 +243,63 @@ namespace ChatBirthdayBot {
 			}
 		}
 
-		private static async void CheckBirthdaysTimer(object? state) {
-			await CheckBirthdays().ConfigureAwait(false);
+		private static void LogUpdate(Update update) {
+			StringBuilder logMessageBuilder = new();
+			logMessageBuilder.Append(update.Type.ToString());
+			logMessageBuilder.Append('|');
+
+			switch (update.Type) {
+				case UpdateType.Message:
+					Message message = update.Message!;
+
+					logMessageBuilder.Append(message.Type.ToString());
+					logMessageBuilder.Append('|');
+					logMessageBuilder.Append(message.Chat.Type.ToString());
+					if (message.Chat.Type != ChatType.Private) {
+						logMessageBuilder.Append('|');
+						logMessageBuilder.Append(message.Chat.Id);
+						logMessageBuilder.Append(" (");
+						logMessageBuilder.Append(message.Chat.Title);
+						logMessageBuilder.Append(')');
+					}
+
+					User? from = message.From;
+					if (from != null) {
+						logMessageBuilder.Append('|');
+						AppendUser(logMessageBuilder, from);
+					}
+
+					if (message.Type == MessageType.Text) {
+						logMessageBuilder.Append('|');
+						logMessageBuilder.Append(message.Text);
+					}
+
+					break;
+				case UpdateType.ChatMember:
+					ChatMemberUpdated chatMember = update.ChatMember!;
+
+					logMessageBuilder.Append(chatMember.Chat.Id);
+					logMessageBuilder.Append(" (");
+					logMessageBuilder.Append(chatMember.Chat.Title);
+					logMessageBuilder.Append(")|");
+					logMessageBuilder.Append(chatMember.NewChatMember.Status.ToString());
+					logMessageBuilder.Append('|');
+					AppendUser(logMessageBuilder, chatMember.NewChatMember.User);
+
+					break;
+				case UpdateType.MyChatMember:
+					ChatMemberUpdated myChatMember = update.MyChatMember!;
+
+					logMessageBuilder.Append(myChatMember.Chat.Id);
+					logMessageBuilder.Append(" (");
+					logMessageBuilder.Append(myChatMember.Chat.Title);
+					logMessageBuilder.Append(")|");
+					logMessageBuilder.Append(myChatMember.NewChatMember.Status.ToString());
+
+					break;
+			}
+
+			Console.WriteLine(logMessageBuilder.ToString());
 		}
 
 		private static async Task Main() {

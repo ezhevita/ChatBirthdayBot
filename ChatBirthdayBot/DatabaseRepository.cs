@@ -12,15 +12,6 @@ namespace ChatBirthdayBot {
 	public class DatabaseRepository : IRepository {
 		private DatabaseRepository() { }
 
-		public static async Task<DatabaseRepository> CreateAsync() {
-			DataContext context = new();
-			await using (context.ConfigureAwait(false)) {
-				await context.Database.MigrateAsync().ConfigureAwait(false);
-			}
-
-			return new DatabaseRepository();
-		}
-
 		public async Task<UserRecord?> GetUserByID(long id, CancellationToken cancellationToken) {
 			DataContext context = new();
 			await using (context.ConfigureAwait(false)) {
@@ -35,7 +26,7 @@ namespace ChatBirthdayBot {
 				if (user == null) {
 					return;
 				}
-				
+
 				user.BirthdayDay = day;
 				user.BirthdayMonth = month;
 				user.BirthdayYear = year;
@@ -64,9 +55,9 @@ namespace ChatBirthdayBot {
 
 		public async Task<List<UserRecord>> GetBirthdaysByDate(DateTime date) {
 			DataContext context = new();
-			
-			byte month = (byte) date.Month;
-			byte day = (byte) date.Day;
+
+			byte month = (byte)date.Month;
+			byte day = (byte)date.Day;
 
 			await using (context.ConfigureAwait(false)) {
 				return await context.Users
@@ -77,7 +68,7 @@ namespace ChatBirthdayBot {
 					.ConfigureAwait(false);
 			}
 		}
-		
+
 		public async Task ProcessDatabaseUpdates(Update update, CancellationToken cancellationToken) {
 			DataContext context = new();
 			await using (context.ConfigureAwait(false)) {
@@ -137,11 +128,20 @@ namespace ChatBirthdayBot {
 						break;
 					}
 				}
-				
+
 				await context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 			}
 		}
-		
+
+		public static async Task<DatabaseRepository> CreateAsync() {
+			DataContext context = new();
+			await using (context.ConfigureAwait(false)) {
+				await context.Database.MigrateAsync().ConfigureAwait(false);
+			}
+
+			return new DatabaseRepository();
+		}
+
 		private async Task UpdateChat(DataContext context, Chat chat) {
 			ChatRecord? currentChat = await context.Chats.FindAsync(chat.Id).ConfigureAwait(false);
 			if (currentChat != null) {

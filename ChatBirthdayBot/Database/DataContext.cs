@@ -9,12 +9,6 @@ namespace ChatBirthdayBot.Database {
 		public DataContext(DbContextOptions<DataContext> options)
 			: base(options) { }
 
-		// ReSharper disable UnusedAutoPropertyAccessor.Global
-		public virtual DbSet<ChatRecord> Chats { get; set; }
-		public virtual DbSet<UserRecord> Users { get; set; }
-		public virtual DbSet<UserChat> UserChats { get; set; }
-		// ReSharper restore UnusedAutoPropertyAccessor.Global
-
 		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
 			if (!optionsBuilder.IsConfigured) {
 				optionsBuilder.UseSqlite("Data Source=data.db");
@@ -97,5 +91,12 @@ namespace ChatBirthdayBot.Database {
 				}
 			);
 		}
+
+		// ReSharper disable UnusedAutoPropertyAccessor.Global
+		public virtual DbSet<ChatRecord> Chats { get; set; }
+		public virtual DbSet<UserRecord> Users { get; set; }
+
+		public virtual DbSet<UserChat> UserChats { get; set; }
+		// ReSharper restore UnusedAutoPropertyAccessor.Global
 	}
 }
