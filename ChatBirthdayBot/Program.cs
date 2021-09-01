@@ -8,7 +8,6 @@ using System.Web;
 using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
@@ -82,7 +81,7 @@ namespace ChatBirthdayBot {
 				return;
 			}
 
-			Console.WriteLine($@"Update|{JsonConvert.SerializeObject(update)}");
+			Console.WriteLine($@"Update|{update.Type}|{update.Message?.From?.Id ?? 0}");
 			DataContext context = new();
 			await using (context.ConfigureAwait(false)) {
 				await ProcessDatabaseUpdates(context, update, cancellationToken).ConfigureAwait(false);
