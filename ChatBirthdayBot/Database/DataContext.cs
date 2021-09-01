@@ -34,6 +34,8 @@ namespace ChatBirthdayBot.Database {
 						.HasColumnName("ID");
 
 					entity.Property(e => e.Name).HasColumnType("varchar");
+
+					entity.Property(e => e.Locale).HasColumnType("varchar");
 				}
 			);
 

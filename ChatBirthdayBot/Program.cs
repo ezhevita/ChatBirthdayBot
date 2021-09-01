@@ -342,6 +342,11 @@ namespace ChatBirthdayBot {
 				TimeSpan.FromDays(1)
 			);
 
+			DataContext context = new();
+			await using (context.ConfigureAwait(false)) {
+				await context.Database.MigrateAsync().ConfigureAwait(false);
+			}
+
 			Bot.StartReceiving(new DefaultUpdateHandler(HandleUpdate, HandleError));
 
 			await CheckBirthdays().ConfigureAwait(false);
