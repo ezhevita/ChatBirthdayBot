@@ -303,7 +303,7 @@ internal static class Program {
 	}
 
 	private static async Task Main() {
-		Bot = new TelegramBotClient(await File.ReadAllTextAsync("token.txt"));
+		Bot = new TelegramBotClient((await File.ReadAllTextAsync("token.txt")).Trim());
 		Timer birthdayTimer = new(
 			CheckBirthdaysTimer,
 			null,
