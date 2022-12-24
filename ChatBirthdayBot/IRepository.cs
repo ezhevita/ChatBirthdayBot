@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 namespace ChatBirthdayBot;
 
 public interface IRepository {
-	Task<List<UserRecord>> GetBirthdaysByDate(DateTime date);
+	Task<List<UserRecord>> GetBirthdaysByDate(DateTime birthdayDate);
 	Task<List<UserRecord>> GetNearestBirthdaysForChat(long chatID, CancellationToken cancellationToken);
 	Task<UserRecord?> GetUserByID(long id, CancellationToken cancellationToken);
 	Task ProcessDatabaseUpdates(Update update, CancellationToken cancellationToken);

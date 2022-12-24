@@ -9,6 +9,6 @@ public class ChatRecord {
 	public string Name { get; set; }
 	public string Locale { get; set; }
 
-	public ICollection<UserRecord> Users { get; set; }
-	public List<UserChat> UserChats { get; set; }
+	public virtual ICollection<UserRecord> Users { get; set; }
+	public virtual List<UserChat> UserChats { get; set; }
 }

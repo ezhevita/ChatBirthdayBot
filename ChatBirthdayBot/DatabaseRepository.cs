@@ -24,7 +24,7 @@ public class DatabaseRepository : IRepository {
 	{
 		await using var context = new DataContext();
 
-		var user = await context.Users.SingleOrDefaultAsync(user => user.Id == userID, cancellationToken: cancellationToken);
+		var user = await context.Users.FindAsync(new object[] {userID}, cancellationToken: cancellationToken);
 		if (user == null) {
 			return;
 		}
@@ -52,9 +52,9 @@ public class DatabaseRepository : IRepository {
 			.ToListAsync(cancellationToken: cancellationToken);
 	}
 
-	public async Task<List<UserRecord>> GetBirthdaysByDate(DateTime date) {
-		var month = date.Month;
-		var day = date.Day;
+	public async Task<List<UserRecord>> GetBirthdaysByDate(DateTime birthdayDate) {
+		var month = birthdayDate.Month;
+		var day = birthdayDate.Day;
 
 		await using var context = new DataContext();
 
@@ -67,6 +67,7 @@ public class DatabaseRepository : IRepository {
 
 	public async Task ProcessDatabaseUpdates(Update update, CancellationToken cancellationToken)
 	{
+		ArgumentNullException.ThrowIfNull(update);
 		await using var context = new DataContext();
 
 		switch (update.Type) {
@@ -136,7 +137,7 @@ public class DatabaseRepository : IRepository {
 		return new DatabaseRepository();
 	}
 
-	private async Task UpdateChat(DataContext context, Chat chat) {
+	private static async Task UpdateChat(DataContext context, Chat chat) {
 		var currentChat = await context.Chats.FindAsync(chat.Id);
 		if (currentChat != null) {
 			currentChat.Name = chat.Title;
@@ -146,11 +147,11 @@ public class DatabaseRepository : IRepository {
 				Name = chat.Title
 			};
 
-			await context.Chats.AddAsync(currentChat);
+			context.Chats.Add(currentChat);
 		}
 	}
 
-	private async Task UpdateUser(DataContext context, User user) {
+	private static async Task UpdateUser(DataContext context, User user) {
 		var currentUser = await context.Users.FindAsync(user.Id);
 		if (currentUser != null) {
 			currentUser.FirstName = user.FirstName;
@@ -163,11 +164,11 @@ public class DatabaseRepository : IRepository {
 				Username = user.Username
 			};
 
-			await context.Users.AddAsync(currentUser);
+			context.Users.Add(currentUser);
 		}
 	}
 
-	private async Task UpdateUserChat(DataContext context, Chat chat, User user) {
+	private static async Task UpdateUserChat(DataContext context, Chat chat, User user) {
 		var participantExists = await context.UserChats.AnyAsync(x => (x.ChatId == chat.Id) && (x.UserId == user.Id));
 		if (!participantExists) {
 			UserChat participant = new() {
@@ -176,7 +177,7 @@ public class DatabaseRepository : IRepository {
 				IsPublic = false
 			};
 
-			await context.UserChats.AddAsync(participant);
+			context.UserChats.Add(participant);
 		}
 	}
 }

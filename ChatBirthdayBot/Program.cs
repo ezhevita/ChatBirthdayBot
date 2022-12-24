@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -56,16 +55,16 @@ internal static class Program {
 	private static async Task CheckBirthdays() {
 		var currentDate = DateTime.UtcNow.Date;
 
-		List<UserRecord> todayBirthdays = await Repository.GetBirthdaysByDate(currentDate);
+		var todayBirthdays = await Repository.GetBirthdaysByDate(currentDate);
 
-		Dictionary<ChatRecord, List<UserRecord>> dictionary = todayBirthdays
+		var dictionary = todayBirthdays
 			.Select(user => user.Chats.Select(chat => new { chat, user }))
 			.SelectMany(x => x)
 			.GroupBy(x => x.chat)
 			.ToDictionary(x => x.Key, x => x.Select(y => y.user).ToList());
 
-		foreach ((var chat, List<UserRecord> users) in dictionary) {
-			IEnumerable<string> usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{Escape(x.FirstName)}</a>");
+		foreach (var (chat, users) in dictionary) {
+			var usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{Escape(x.FirstName)}</a>");
 
 			try {
 				var message = await Bot.SendTextMessageAsync(chat.Id, string.Join(", ", usernamesToPost) + " - с днём рождения!", ParseMode.Html);
@@ -138,7 +137,7 @@ internal static class Program {
 				return;
 			}
 
-			string[] args = messageText.ToUpperInvariant().Split(new[] { ' ', '@' }, StringSplitOptions.RemoveEmptyEntries);
+			var args = messageText.ToUpperInvariant().Split(new[] { ' ', '@' }, StringSplitOptions.RemoveEmptyEntries);
 			switch (args[0].ToUpperInvariant()) {
 				case "/BIRTHDAYS" when message.Chat.Type is ChatType.Group or ChatType.Supergroup: {
 					if (LastSentBirthdaysMessage.TryGetValue(message.Chat.Id, out var messageID)) {
@@ -153,7 +152,7 @@ internal static class Program {
 						);
 					}
 
-					List<UserRecord> birthdays = await Repository.GetNearestBirthdaysForChat(message.Chat.Id, cancellationToken);
+					var birthdays = await Repository.GetNearestBirthdaysForChat(message.Chat.Id, cancellationToken);
 
 					text = string.Join(
 						'\n',
@@ -178,7 +177,7 @@ internal static class Program {
 						text = string.Format(
 							CultureInfo.CurrentCulture, Lines.BirthdayDate, date.Year == 0004
 								? date.ToString("M", CultureInfo.CurrentCulture)
-								: date.ToLongDateString().Replace(CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(date.DayOfWeek), "").TrimStart(',', ' ').TrimEnd('.')
+								: date.ToLongDateString().Replace(CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(date.DayOfWeek), "", StringComparison.Ordinal).TrimStart(',', ' ').TrimEnd('.')
 						);
 					} else {
 						text = Lines.BirthdayNotSet;
