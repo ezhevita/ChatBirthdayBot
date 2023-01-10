@@ -88,7 +88,6 @@ internal static class Program {
 
 	private static Task HandleError(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken) {
 		Console.WriteLine(exception);
-		Bot.StartReceiving(new DefaultUpdateHandler(HandleUpdate, HandleError), cancellationToken: cancellationToken);
 
 		return Task.CompletedTask;
 	}
