@@ -97,7 +97,10 @@ internal static class Program {
 			return;
 		}
 
+#if DEBUG
 		LogUpdate(update);
+#endif
+
 		await Repository.ProcessDatabaseUpdates(update, cancellationToken);
 
 		if ((update.Type != UpdateType.Message) || (update.Message!.Type != MessageType.Text)) {
