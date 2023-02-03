@@ -2,7 +2,8 @@
 
 namespace ChatBirthdayBot.Database;
 
-public class UserChat {
+public class UserChat
+{
 	public long UserId { get; set; }
 	public UserRecord User { get; set; }
 	public long ChatId { get; set; }

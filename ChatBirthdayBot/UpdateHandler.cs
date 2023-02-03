@@ -87,26 +87,34 @@ public partial class UpdateHandler : IUpdateHandler
 	{
 		ArgumentNullException.ThrowIfNull(update);
 
-		switch (update.Type) {
-			case UpdateType.MyChatMember when update.MyChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator: {
+		switch (update.Type)
+		{
+			case UpdateType.MyChatMember
+				when update.MyChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator:
+			{
 				await UpdateChat(update.MyChatMember.Chat);
 
 				break;
 			}
-			case UpdateType.MyChatMember when update.MyChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left: {
+			case UpdateType.MyChatMember
+				when update.MyChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left:
+			{
 				var chat = update.MyChatMember.Chat;
 				var dbChat = await _context.Chats
 					.Include(x => x.UserChats)
 					.FirstOrDefaultAsync(x => x.Id == chat.Id, cancellationToken);
 
-				if (dbChat != null) {
+				if (dbChat != null)
+				{
 					dbChat.UserChats.Clear();
 					_context.Chats.Remove(dbChat);
 				}
 
 				break;
 			}
-			case UpdateType.ChatMember when update.ChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator: {
+			case UpdateType.ChatMember
+				when update.ChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator:
+			{
 				var user = update.ChatMember.NewChatMember.User;
 				var chat = update.ChatMember.Chat;
 				await UpdateUser(user);
@@ -115,11 +123,14 @@ public partial class UpdateHandler : IUpdateHandler
 
 				break;
 			}
-			case UpdateType.ChatMember when update.ChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left: {
+			case UpdateType.ChatMember
+				when update.ChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left:
+			{
 				var user = update.ChatMember.NewChatMember.User;
 				var chat = update.ChatMember.Chat;
-				var participant = await _context.UserChats.FindAsync(new object[] { user.Id, chat.Id }, cancellationToken);
-				if (participant != null) {
+				var participant = await _context.UserChats.FindAsync(new object[] {user.Id, chat.Id}, cancellationToken);
+				if (participant != null)
+				{
 					_context.UserChats.Remove(participant);
 				}
 
@@ -128,12 +139,14 @@ public partial class UpdateHandler : IUpdateHandler
 
 				break;
 			}
-			case UpdateType.Message when update.Message!.Chat.Type is ChatType.Private: {
+			case UpdateType.Message when update.Message!.Chat.Type is ChatType.Private:
+			{
 				await UpdateUser(update.Message.From!);
 
 				break;
 			}
-			case UpdateType.Message when update.Message.Chat.Type is ChatType.Supergroup or ChatType.Group: {
+			case UpdateType.Message when update.Message.Chat.Type is ChatType.Supergroup or ChatType.Group:
+			{
 				await UpdateUser(update.Message.From!);
 				await UpdateChat(update.Message.Chat);
 				await UpdateUserChat(update.Message.Chat, update.Message.From!);
@@ -171,8 +184,10 @@ public partial class UpdateHandler : IUpdateHandler
 	private async Task UpdateUserChat(Chat chat, User user)
 	{
 		var participantExists = await _context.UserChats.AnyAsync(x => (x.ChatId == chat.Id) && (x.UserId == user.Id));
-		if (!participantExists) {
-			UserChat participant = new() {
+		if (!participantExists)
+		{
+			UserChat participant = new()
+			{
 				ChatId = chat.Id,
 				UserId = user.Id,
 				IsPublic = true
@@ -190,14 +205,16 @@ public partial class UpdateHandler : IUpdateHandler
 				Id = chat.Id,
 				Name = chat.Title
 			}
-		).WhenMatched(x => new ChatRecord
-		{
-			CustomOffsetInHours = x.CustomOffsetInHours,
-			Locale = x.Locale,
-			Name = chat.Title,
-			ShouldPinNotify = x.ShouldPinNotify,
-			TimeZoneOffset = x.TimeZoneOffset
-		}).RunAsync();
+		).WhenMatched(
+			x => new ChatRecord
+			{
+				CustomOffsetInHours = x.CustomOffsetInHours,
+				Locale = x.Locale,
+				Name = chat.Title,
+				ShouldPinNotify = x.ShouldPinNotify,
+				TimeZoneOffset = x.TimeZoneOffset
+			}
+		).RunAsync();
 	}
 
 	[LoggerMessage(

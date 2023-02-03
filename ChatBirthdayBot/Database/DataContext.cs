@@ -4,18 +4,24 @@
 
 namespace ChatBirthdayBot.Database;
 
-public class DataContext : DbContext {
+public class DataContext : DbContext
+{
 	public DataContext() { }
 
 	public DataContext(DbContextOptions<DataContext> options)
-		: base(options) { }
-
-	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+		: base(options)
+	{
 	}
 
-	protected override void OnModelCreating(ModelBuilder modelBuilder) {
+	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+	{
+	}
+
+	protected override void OnModelCreating(ModelBuilder modelBuilder)
+	{
 		modelBuilder.Entity<ChatRecord>(
-			entity => {
+			entity =>
+			{
 				entity.ToTable("Chats");
 
 				entity.Property(e => e.Id)
@@ -31,7 +37,8 @@ public class DataContext : DbContext {
 		);
 
 		modelBuilder.Entity<UserRecord>(
-			entity => {
+			entity =>
+			{
 				entity.ToTable("Users");
 
 				entity.Property(e => e.Id)
@@ -61,8 +68,9 @@ public class DataContext : DbContext {
 		);
 
 		modelBuilder.Entity<UserChat>(
-			entity => {
-				entity.HasKey(e => new { e.UserId, e.ChatId });
+			entity =>
+			{
+				entity.HasKey(e => new {e.UserId, e.ChatId});
 
 				entity.HasIndex(e => e.ChatId);
 				entity.HasIndex(e => e.UserId);
@@ -77,6 +85,7 @@ public class DataContext : DbContext {
 	// ReSharper disable UnusedAutoPropertyAccessor.Global
 	public virtual DbSet<ChatRecord> Chats { get; set; }
 	public virtual DbSet<UserRecord> Users { get; set; }
+
 	public virtual DbSet<UserChat> UserChats { get; set; }
 	// ReSharper restore UnusedAutoPropertyAccessor.Global
 }

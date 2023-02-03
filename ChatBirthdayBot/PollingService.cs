@@ -39,7 +39,7 @@ public partial class PollingService : BackgroundService
 	}
 
 	[LoggerMessage(
-		EventId = (int) LogEventId.HandlingErrorOccurred, Level = LogLevel.Error, Message = "Handling updates failed"
+		EventId = (int)LogEventId.HandlingErrorOccurred, Level = LogLevel.Error, Message = "Handling updates failed"
 	)]
 	private partial void LogHandlingError(Exception ex);
 }

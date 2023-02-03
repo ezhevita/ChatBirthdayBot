@@ -1,4 +1,3 @@
-
 using System;
 using ChatBirthdayBot;
 using ChatBirthdayBot.Commands;
@@ -13,39 +12,45 @@ using Telegram.Bot;
 using Telegram.Bot.Polling;
 
 var host = Host.CreateDefaultBuilder(args)
-	.ConfigureServices((context, services) =>
-	{
-		services.Configure<BotConfiguration>(context.Configuration.GetSection("Bot"));
+	.ConfigureServices(
+		(context, services) =>
+		{
+			services.Configure<BotConfiguration>(context.Configuration.GetSection("Bot"));
 
-		services.AddHttpClient("telegram_bot_client")
-			.AddTypedClient<ITelegramBotClient>((httpClient, sp) =>
-			{
-				var botConfig = sp.GetRequiredService<IOptions<BotConfiguration>>().Value;
-				var options = new TelegramBotClientOptions(botConfig.Token);
-				return new TelegramBotClient(options, httpClient);
-			});
+			services.AddHttpClient("telegram_bot_client")
+				.AddTypedClient<ITelegramBotClient>(
+					(httpClient, sp) =>
+					{
+						var botConfig = sp.GetRequiredService<IOptions<BotConfiguration>>().Value;
+						var options = new TelegramBotClientOptions(botConfig.Token);
 
-		services.AddDbContext<DataContext>(options =>
-			{
-				options.UseSqlite("Data Source=data.db");
-				options.EnableSensitiveDataLogging();
-			}
-		);
-		services.AddQuartz(x => x.UseMicrosoftDependencyInjectionJobFactory());
-		services.AddQuartzHostedService(x => x.WaitForJobsToComplete = true);
-		services.AddScoped<IUpdateHandler, UpdateHandler>();
-		services.AddScoped<ReceiverService>();
-		services.AddSingleton<BotUserData>();
+						return new TelegramBotClient(options, httpClient);
+					}
+				);
 
-		services.AddScoped<ICommand, BirthdayInfoCommand>();
-		services.AddScoped<ICommand, ListBirthdaysCommand>();
-		services.AddScoped<ICommand, RemoveBirthdayCommand>();
-		services.AddScoped<ICommand, SetBirthdayCommand>();
+			services.AddDbContext<DataContext>(
+				options =>
+				{
+					options.UseSqlite("Data Source=data.db");
+					options.EnableSensitiveDataLogging();
+				}
+			);
+			services.AddQuartz(x => x.UseMicrosoftDependencyInjectionJobFactory());
+			services.AddQuartzHostedService(x => x.WaitForJobsToComplete = true);
+			services.AddScoped<IUpdateHandler, UpdateHandler>();
+			services.AddScoped<ReceiverService>();
+			services.AddSingleton<BotUserData>();
 
-		services.AddScoped<ICommandHandler, CommandHandler>();
+			services.AddScoped<ICommand, BirthdayInfoCommand>();
+			services.AddScoped<ICommand, ListBirthdaysCommand>();
+			services.AddScoped<ICommand, RemoveBirthdayCommand>();
+			services.AddScoped<ICommand, SetBirthdayCommand>();
 
-		services.AddHostedService<PollingService>();
-	})
+			services.AddScoped<ICommandHandler, CommandHandler>();
+
+			services.AddHostedService<PollingService>();
+		}
+	)
 	.Build();
 
 var schedulerFactory = host.Services.GetRequiredService<ISchedulerFactory>();

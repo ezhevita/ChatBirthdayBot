@@ -4,7 +4,8 @@
 
 namespace ChatBirthdayBot.Database;
 
-public class UserRecord {
+public class UserRecord
+{
 	public long Id { get; set; }
 	public byte? BirthdayDay { get; set; }
 	public byte? BirthdayMonth { get; set; }

@@ -37,6 +37,7 @@ public partial class PostBirthdaysJob : IJob
 			var chatTimezoneOffsetHours = (int)chat.TimeZoneOffset.TotalHours;
 			var chatCustomOffset = chat.CustomOffsetInHours;
 			var totalOffsetHours = chatTimezoneOffsetHours + chatCustomOffset;
+
 			if ((totalOffsetHours + 24) % 24 != scheduleHours)
 				continue;
 

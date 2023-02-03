@@ -25,17 +25,20 @@ public class SetBirthdayCommand : ICommand
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{
-		var currentUser = await _context.Users.FindAsync(new object[] { message.From!.Id }, cancellationToken);
+		var currentUser = await _context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
 
 		var spaceIndex = message.Text!.IndexOf(' ', StringComparison.Ordinal);
+
 		if (spaceIndex < 0)
 			return null;
 
 		var dateText = message.Text[(spaceIndex + 1)..];
 
-		if (!DateTime.TryParseExact(dateText, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var birthdayDate))
+		if (!DateTime.TryParseExact(
+			    dateText, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var birthdayDate))
 		{
-			if (!DateTime.TryParseExact(dateText + "-0004", "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate))
+			if (!DateTime.TryParseExact(
+				    dateText + "-0004", "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthdayDate))
 				return Lines.BirthdaySetFailed;
 		} else
 		{
@@ -43,9 +46,9 @@ public class SetBirthdayCommand : ICommand
 				return Lines.BirthdaySetFailed;
 		}
 
-		currentUser!.BirthdayDay = (byte) birthdayDate.Day;
-		currentUser.BirthdayMonth = (byte) birthdayDate.Month;
-		currentUser.BirthdayYear = birthdayDate.Year == 0004 ? null : (ushort?) birthdayDate.Year;
+		currentUser!.BirthdayDay = (byte)birthdayDate.Day;
+		currentUser.BirthdayMonth = (byte)birthdayDate.Month;
+		currentUser.BirthdayYear = birthdayDate.Year == 0004 ? null : (ushort?)birthdayDate.Year;
 
 		await _context.SaveChangesAsync(cancellationToken);
 

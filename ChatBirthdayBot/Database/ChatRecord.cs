@@ -5,7 +5,8 @@ using System.Collections.Generic;
 
 namespace ChatBirthdayBot.Database;
 
-public class ChatRecord {
+public class ChatRecord
+{
 	public long Id { get; set; }
 	public string Name { get; set; }
 	public string Locale { get; set; }

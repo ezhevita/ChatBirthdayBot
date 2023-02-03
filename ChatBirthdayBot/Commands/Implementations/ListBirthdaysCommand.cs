@@ -38,6 +38,7 @@ public class ListBirthdaysCommand : ICommand
 		}
 
 		var birthdays = await GetNearestBirthdaysForChat(message.Chat.Id, cancellationToken);
+
 		if (!birthdays.Any())
 			return Lines.NoBirthdays;
 
@@ -55,14 +56,15 @@ public class ListBirthdaysCommand : ICommand
 		);
 	}
 
-	private async Task<List<UserRecord>> GetNearestBirthdaysForChat(long chatID, CancellationToken cancellationToken) {
+	private async Task<List<UserRecord>> GetNearestBirthdaysForChat(long chatID, CancellationToken cancellationToken)
+	{
 		var date = DateTime.UtcNow.AddHours(3);
 		var key = (ushort)((date.Month << 5) + date.Day);
 
 		return await _context.UserChats
 			.Include(x => x.User)
 			.Where(x => (x.ChatId == chatID) && (x.User.BirthdayDay != null) && (x.User.BirthdayMonth != null))
-			.Select(userChat => new { userChat, tempKey = userChat.User.BirthdayMonth * 32 + userChat.User.BirthdayDay })
+			.Select(userChat => new {userChat, tempKey = userChat.User.BirthdayMonth * 32 + userChat.User.BirthdayDay})
 			.OrderBy(x => x.tempKey < key ? x.tempKey + 12 * 32 : x.tempKey)
 			.Select(x => x.userChat.User)
 			.Take(10)
@@ -72,15 +74,18 @@ public class ListBirthdaysCommand : ICommand
 	public Task HandleSentMessage(Message sentMessage)
 	{
 		_lastSentBirthdaysMessage[sentMessage.Chat.Id] = sentMessage.MessageId;
+
 		return Task.CompletedTask;
 	}
 
 	private static string Escape(string message) => HttpUtility.HtmlEncode(message);
 
-	private static int AgeFromDate(DateTime birthdate) {
+	private static int AgeFromDate(DateTime birthdate)
+	{
 		var today = DateTime.Today;
 		var age = (byte)(today.Year - birthdate.Year);
-		if (birthdate.Date > today.AddYears(-age)) {
+		if (birthdate.Date > today.AddYears(-age))
+		{
 			age--;
 		}
 

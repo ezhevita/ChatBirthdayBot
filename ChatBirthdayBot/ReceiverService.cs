@@ -37,6 +37,7 @@ public class ReceiverService
 		await _botClient.ReceiveAsync(
 			updateHandler: _updateHandlers,
 			receiverOptions: receiverOptions,
-			cancellationToken: stoppingToken);
+			cancellationToken: stoppingToken
+		);
 	}
 }

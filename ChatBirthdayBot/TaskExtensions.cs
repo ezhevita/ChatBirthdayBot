@@ -12,7 +12,8 @@ public static class TaskExtensions
 				try
 				{
 					await task;
-				} catch
+				}
+				catch
 				{
 					// ignored
 				}

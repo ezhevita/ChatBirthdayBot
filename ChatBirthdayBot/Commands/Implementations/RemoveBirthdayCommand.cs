@@ -23,7 +23,7 @@ public class RemoveBirthdayCommand : ICommand
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{
-		var currentUser = await _context.Users.FindAsync(new object[] { message.From!.Id }, cancellationToken);
+		var currentUser = await _context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
 
 		if (currentUser!.BirthdayDay != null)
 		{

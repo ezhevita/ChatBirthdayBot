@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using ChatBirthdayBot.Commands;
 using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
-
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Telegram.Bot;

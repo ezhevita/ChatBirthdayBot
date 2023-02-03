@@ -24,17 +24,19 @@ public class BirthdayInfoCommand : ICommand
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{
-		var currentUser = await _context.Users.FindAsync(new object[] { message.From!.Id }, cancellationToken);
+		var currentUser = await _context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
 
 		if (currentUser is not {BirthdayDay: not null, BirthdayMonth: not null})
 			return Lines.BirthdayNotSet;
 
 		DateTime date = new(currentUser.BirthdayYear ?? 0004, currentUser.BirthdayMonth.Value, currentUser.BirthdayDay.Value);
+
 		return string.Format(
 			CultureInfo.CurrentCulture, Lines.BirthdayDate, date.Year == 0004
 				? date.ToString("M", CultureInfo.CurrentCulture)
-				: date.ToLongDateString().Replace(CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(date.DayOfWeek), "", StringComparison.Ordinal).TrimStart(',', ' ').TrimEnd('.')
+				: date.ToLongDateString().Replace(
+					CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(date.DayOfWeek), "", StringComparison.Ordinal
+				).TrimStart(',', ' ').TrimEnd('.')
 		);
-
 	}
 }
