@@ -34,4 +34,10 @@
 	<data name="BirthdaySetSuccessfully" xml:space="preserve">
         <value>Your birthday has been successfully added to the database!</value>
     </data>
+	<data name="BirthdayMessage" xml:space="preserve">
+		<value>{0} — happy birthday!</value>
+	</data>
+	<data name="NoBirthdays" xml:space="preserve">
+		<value>No members with birthdays in the chat! Set your own birthday by DMing the bot.</value>
+	</data>
 </root>

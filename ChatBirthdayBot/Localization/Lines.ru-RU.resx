@@ -34,4 +34,10 @@
 	<data name="BirthdaySetSuccessfully" xml:space="preserve">
         <value>День рождения успешно добавлен в базу данных!</value>
     </data>
+	<data name="BirthdayMessage" xml:space="preserve">
+		<value>{0} — с днём рождения!</value>
+	</data>
+	<data name="NoBirthdays" xml:space="preserve">
+		<value>В чате ни у кого не установлен день рождения! Установите свой день рождения, написав боту в ЛС.</value>
+	</data>
 </root>

@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBirthdayBot", "ChatBirthdayBot\ChatBirthdayBot.csproj", "{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatBirthdayBot.Tests", "ChatBirthdayBot.Tests\ChatBirthdayBot.Tests.csproj", "{C8E72449-0C23-4180-8EA7-F0D2A8B3E4D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91C0E25A-A71A-4998-BF63-B3B11B5D3DEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8E72449-0C23-4180-8EA7-F0D2A8B3E4D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8E72449-0C23-4180-8EA7-F0D2A8B3E4D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8E72449-0C23-4180-8EA7-F0D2A8B3E4D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8E72449-0C23-4180-8EA7-F0D2A8B3E4D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

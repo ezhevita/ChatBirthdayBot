@@ -11,47 +11,38 @@ public class DataContext : DbContext {
 		: base(options) { }
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
-		if (!optionsBuilder.IsConfigured) {
-			optionsBuilder.UseSqlite("Data Source=data.db");
-			//optionsBuilder.LogTo(Console.WriteLine);
-			//optionsBuilder.EnableSensitiveDataLogging();
-		}
 	}
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		modelBuilder.Entity<ChatRecord>(
 			entity => {
-				entity.ToTable("Chat");
+				entity.ToTable("Chats");
 
 				entity.Property(e => e.Id)
-
 					.ValueGeneratedNever()
 					.HasColumnName("ID");
 
 				entity.Property(e => e.Name);
-
 				entity.Property(e => e.Locale);
+				entity.Property(e => e.TimeZoneOffset);
+				entity.Property(e => e.CustomOffsetInHours);
+				entity.Property(e => e.ShouldPinNotify);
 			}
 		);
 
 		modelBuilder.Entity<UserRecord>(
 			entity => {
-				entity.ToTable("User");
+				entity.ToTable("Users");
 
 				entity.Property(e => e.Id)
 					.ValueGeneratedNever()
 					.HasColumnName("ID");
 
 				entity.Property(e => e.BirthdayDay);
-
 				entity.Property(e => e.BirthdayMonth);
-
 				entity.Property(e => e.BirthdayYear);
-
 				entity.Property(e => e.FirstName);
-
 				entity.Property(e => e.LastName);
-
 				entity.Property(e => e.Username);
 
 				entity.HasMany(p => p.Chats)
@@ -73,20 +64,11 @@ public class DataContext : DbContext {
 			entity => {
 				entity.HasKey(e => new { e.UserId, e.ChatId });
 
-				entity.ToTable("UserChat");
+				entity.HasIndex(e => e.ChatId);
+				entity.HasIndex(e => e.UserId);
 
-				entity.HasIndex(e => e.ChatId, "UserChat_ChatID");
-
-				entity.HasIndex(e => e.UserId, "UserChat_UserID");
-
-				entity.Property(e => e.UserId)
-
-					.HasColumnName("UserID");
-
-				entity.Property(e => e.ChatId)
-
-					.HasColumnName("ChatID");
-
+				entity.Property(e => e.UserId);
+				entity.Property(e => e.ChatId);
 				entity.Property(e => e.IsPublic);
 			}
 		);
@@ -95,7 +77,6 @@ public class DataContext : DbContext {
 	// ReSharper disable UnusedAutoPropertyAccessor.Global
 	public virtual DbSet<ChatRecord> Chats { get; set; }
 	public virtual DbSet<UserRecord> Users { get; set; }
-
 	public virtual DbSet<UserChat> UserChats { get; set; }
 	// ReSharper restore UnusedAutoPropertyAccessor.Global
 }
