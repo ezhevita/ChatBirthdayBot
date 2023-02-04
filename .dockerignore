@@ -1,7 +1,9 @@
+.dockerignore
 .git
 .github
 .idea
-.DS_Store
+*.DotSettings.user
 Dockerfile
-bin/
-obj/
+**/.DS_Store
+**/bin/
+**/obj/
