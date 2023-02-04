@@ -1,0 +1,7 @@
+.git
+.github
+.idea
+.DS_Store
+Dockerfile
+bin/
+obj/

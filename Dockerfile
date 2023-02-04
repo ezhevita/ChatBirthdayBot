@@ -1,9 +1,9 @@
-FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
+FROM mcr.microsoft.com/dotnet/runtime:7.0-alpine AS base
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS build
 WORKDIR /src
 COPY ["ChatBirthdayBot/ChatBirthdayBot.csproj", "ChatBirthdayBot/"]
 RUN dotnet restore "ChatBirthdayBot/ChatBirthdayBot.csproj"
@@ -12,7 +12,7 @@ WORKDIR "/src/ChatBirthdayBot"
 RUN dotnet build "ChatBirthdayBot.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "ChatBirthdayBot.csproj" -c Release -o /app/publish
+RUN dotnet publish "ChatBirthdayBot.csproj" -c Release -r alpine-x64 --self-contained false -o /app/publish
 
 FROM base AS final
 WORKDIR /app
