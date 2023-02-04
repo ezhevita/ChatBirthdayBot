@@ -6,6 +6,7 @@ public enum LogEventId
 	PollingErrorOccurred,
 	HandlingErrorOccurred,
 	RespondErrorOccurred,
+	PostErrorOccurred,
 	PrivateCommandMessageReceived,
 	ChatCommandMessageReceived,
 	MyChatMemberUpdateReceived,

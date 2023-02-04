@@ -73,6 +73,9 @@ public partial class PostBirthdaysJob : IJob
 		}
 	}
 
-	[LoggerMessage(Level = LogLevel.Error, Message = "An error occurred while posting a birthday message")]
+	[LoggerMessage(
+		EventId = (int)LogEventId.PostErrorOccurred, Level = LogLevel.Error,
+		Message = "An error occurred while posting a birthday message"
+	)]
 	private partial void LogPostError(Exception ex);
 }
