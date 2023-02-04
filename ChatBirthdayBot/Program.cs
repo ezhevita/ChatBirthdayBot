@@ -28,13 +28,7 @@ var host = Host.CreateDefaultBuilder(args)
 					}
 				);
 
-			services.AddDbContext<DataContext>(
-				options =>
-				{
-					options.UseSqlite("Data Source=data.db");
-					options.EnableSensitiveDataLogging();
-				}
-			);
+			services.AddDbContext<DataContext>(options => options.UseSqlite("Data Source=data.db"));
 			services.AddQuartz(x => x.UseMicrosoftDependencyInjectionJobFactory());
 			services.AddQuartzHostedService(x => x.WaitForJobsToComplete = true);
 			services.AddScoped<IUpdateHandler, UpdateHandler>();
