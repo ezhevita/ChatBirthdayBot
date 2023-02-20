@@ -82,9 +82,14 @@ public class ListBirthdaysCommand : ICommand
 
 	private static int AgeFromDate(DateTime birthdate)
 	{
-		var today = DateTime.Today;
+		var today = DateTime.UtcNow.Date;
 		var age = (byte)(today.Year - birthdate.Year);
 		if (birthdate.Date > today.AddYears(-age))
+		{
+			age--;
+		}
+
+		if (birthdate.Day == today.Day && birthdate.Month == today.Month)
 		{
 			age--;
 		}

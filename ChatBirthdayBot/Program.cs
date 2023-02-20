@@ -36,6 +36,7 @@ var host = Host.CreateDefaultBuilder(args)
 			services.AddSingleton<BotUserData>();
 
 			services.AddScoped<ICommand, BirthdayInfoCommand>();
+			services.AddScoped<ICommand, CheckChatMembersCommand>();
 			services.AddScoped<ICommand, ListBirthdaysCommand>();
 			services.AddScoped<ICommand, RemoveBirthdayCommand>();
 			services.AddScoped<ICommand, SetBirthdayCommand>();
