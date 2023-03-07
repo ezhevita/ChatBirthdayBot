@@ -54,16 +54,7 @@ public class DataContext : DbContext
 
 				entity.HasMany(p => p.Chats)
 					.WithMany(p => p.Users)
-					.UsingEntity<UserChat>(
-						p => p
-							.HasOne(x => x.Chat)
-							.WithMany(x => x.UserChats)
-							.HasForeignKey(x => x.ChatId),
-						p => p
-							.HasOne(x => x.User)
-							.WithMany(x => x.UserChats)
-							.HasForeignKey(x => x.UserId)
-					);
+					.UsingEntity<UserChat>();
 			}
 		);
 

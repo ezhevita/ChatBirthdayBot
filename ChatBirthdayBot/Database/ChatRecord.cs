@@ -16,5 +16,5 @@ public class ChatRecord
 	public bool ShouldPinNotify { get; set; }
 
 	public virtual ICollection<UserRecord> Users { get; set; }
-	public virtual List<UserChat> UserChats { get; set; }
+	public virtual ICollection<UserChat> UserChats { get; set; }
 }

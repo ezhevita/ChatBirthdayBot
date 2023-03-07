@@ -78,4 +78,10 @@ public partial class PostBirthdaysJob : IJob
 		Message = "An error occurred while posting a birthday message"
 	)]
 	private partial void LogPostError(Exception ex);
+
+	[LoggerMessage(
+		EventId = (int)LogEventId.EvaluatingPostBirthdaysJobForChat, Level = LogLevel.Information,
+		Message = "Executing PostBirthdays job for chat {ChatId} at {Hour}h"
+	)]
+	private partial void LogStartJob(long chatId, int hour, Exception ex);
 }
