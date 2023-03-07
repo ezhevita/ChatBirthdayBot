@@ -29,11 +29,13 @@ public class PostBirthdaysJobTests : BaseTestClass
 
 		var job = new PostBirthdaysJob(telegramClientMock.Object, context, NullLogger<PostBirthdaysJob>.Instance);
 		telegramClientMock.Setup(
-			x => x.MakeRequestAsync(
-				It.Is<SendMessageRequest>(r => r.Text == "<a href=\"tg://user?id=1\">Test</a> — happy birthday!" && r.ChatId == -100),
-				It.IsAny<CancellationToken>()
+				x => x.MakeRequestAsync(
+					It.Is<SendMessageRequest>(
+						r => r.Text == "<a href=\"tg://user?id=1\">Test</a> — happy birthday!" && r.ChatId == -100
+					),
+					It.IsAny<CancellationToken>()
+				)
 			)
-		)
 			.ReturnsAsync(new Message())
 			.Verifiable();
 
