@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Web;
 using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Quartz;
 using Telegram.Bot;
@@ -32,7 +31,7 @@ public partial class PostBirthdaysJob : IJob
 		var scheduleDate = context.ScheduledFireTimeUtc!.Value.UtcDateTime;
 		var scheduleHours = scheduleDate.Hour;
 
-		foreach (var chat in _context.Chats.Include(x => x.Users))
+		foreach (var chat in _context.Chats)
 		{
 			var chatTimezoneOffsetHours = (int)chat.TimeZoneOffset.TotalHours;
 			var chatCustomOffset = chat.CustomOffsetInHours;
@@ -51,9 +50,14 @@ public partial class PostBirthdaysJob : IJob
 			}
 
 			var birthdayDay = scheduleDate.Date.AddDays(daysOffset);
-			var users = chat.Users
-				.Where(user => (user.BirthdayDay == birthdayDay.Day) && (user.BirthdayMonth == birthdayDay.Month))
+			var users = _context.Users
+				.Where(user => (user.BirthdayDay == birthdayDay.Day) && (user.BirthdayMonth == birthdayDay.Month) && user.Chats.Contains(chat))
 				.ToList();
+
+			LogExecuteJobForChat(chat.Id, scheduleHours, users.Count);
+
+			if (!users.Any())
+				continue;
 
 			var usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{HttpUtility.HtmlEncode(x.FirstName)}</a>");
 
@@ -80,8 +84,8 @@ public partial class PostBirthdaysJob : IJob
 	private partial void LogPostError(Exception ex);
 
 	[LoggerMessage(
-		EventId = (int)LogEventId.EvaluatingPostBirthdaysJobForChat, Level = LogLevel.Information,
-		Message = "Executing PostBirthdays job for chat {ChatId} at {Hour}h"
+		EventId = (int)LogEventId.ExecutingPostBirthdaysJobForChat, Level = LogLevel.Information,
+		Message = "Executing PostBirthdays job for chat {ChatId} at {Hour}h, found {Members} birthday members"
 	)]
-	private partial void LogStartJob(long chatId, int hour, Exception ex);
+	private partial void LogExecuteJobForChat(long chatId, int hour, int members);
 }

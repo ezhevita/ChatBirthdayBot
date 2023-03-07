@@ -6,7 +6,7 @@ public enum LogEventId
 	PollingErrorOccurred,
 	HandlingErrorOccurred,
 	RespondErrorOccurred,
-	EvaluatingPostBirthdaysJobForChat,
+	ExecutingPostBirthdaysJobForChat,
 	PostErrorOccurred,
 	PrivateCommandMessageReceived,
 	ChatCommandMessageReceived,
