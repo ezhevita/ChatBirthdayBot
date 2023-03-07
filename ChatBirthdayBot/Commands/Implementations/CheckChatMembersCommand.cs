@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChatBirthdayBot.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
@@ -14,10 +15,12 @@ namespace ChatBirthdayBot.Commands;
 public class CheckChatMembersCommand : ICommand
 {
 	private readonly DataContext _context;
+	private readonly long _ownerId;
 
-	public CheckChatMembersCommand(DataContext context)
+	public CheckChatMembersCommand(DataContext context, IOptions<BotConfiguration> botConfig)
 	{
 		_context = context;
+		_ownerId = botConfig.Value.UserOwnerId;
 	}
 
 	public string CommandName => "checkmembers";
@@ -28,7 +31,8 @@ public class CheckChatMembersCommand : ICommand
 		var chatId = message.Chat.Id;
 		var currentChatMember = await botClient.GetChatMemberAsync(chatId, message.From!.Id, cancellationToken);
 
-		if (currentChatMember.Status is not ChatMemberStatus.Administrator or ChatMemberStatus.Creator)
+		if (currentChatMember.Status is not ChatMemberStatus.Administrator or ChatMemberStatus.Creator &&
+		    message.From.Id != _ownerId)
 			return null;
 
 		var chat = await _context.Chats

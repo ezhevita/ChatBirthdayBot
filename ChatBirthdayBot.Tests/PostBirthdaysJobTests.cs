@@ -37,6 +37,14 @@ public class PostBirthdaysJobTests : BaseTestClass
 			.ReturnsAsync(new Message())
 			.Verifiable();
 
+		telegramClientMock.Setup(
+				x => x.MakeRequestAsync(
+					It.IsAny<PinChatMessageRequest>(), It.IsAny<CancellationToken>()
+				)
+			)
+			.ReturnsAsync(true)
+			.Verifiable();
+
 		await job.Execute(new JobContextStub {ScheduledFireTimeUtc = new DateTimeOffset(2023, 1, 1, 0, 0, 0, TimeSpan.Zero)});
 
 		telegramClientMock.Verify();
