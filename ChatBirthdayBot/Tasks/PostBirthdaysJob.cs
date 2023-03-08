@@ -30,6 +30,7 @@ public partial class PostBirthdaysJob : IJob
 	{
 		var scheduleDate = context.ScheduledFireTimeUtc!.Value.UtcDateTime;
 		var scheduleHours = scheduleDate.Hour;
+		_logger.LogDebug("Starting job @ {Hours}", scheduleHours);
 
 		foreach (var chat in _context.Chats)
 		{
@@ -38,7 +39,14 @@ public partial class PostBirthdaysJob : IJob
 			var totalOffsetHours = chatTimezoneOffsetHours + chatCustomOffset;
 
 			if ((totalOffsetHours + 24) % 24 != scheduleHours)
+			{
+				_logger.LogDebug(
+					"Ignored chat {ChatName} because {Offset} offset shouldn't fire at {Hours}", chat.Name, totalOffsetHours,
+					scheduleHours
+				);
+
 				continue;
+			}
 
 			int daysOffset;
 			if (totalOffsetHours < 0)
