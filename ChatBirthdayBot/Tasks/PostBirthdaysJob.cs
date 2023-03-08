@@ -65,7 +65,11 @@ public partial class PostBirthdaysJob : IJob
 			LogExecuteJobForChat(chat.Id, scheduleHours, users.Count);
 
 			if (!users.Any())
+			{
+				_logger.LogDebug("Ignored chat {ChatName} because no members with birthdays", chat.Name);
+
 				continue;
+			}
 
 			var usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{HttpUtility.HtmlEncode(x.FirstName)}</a>");
 
