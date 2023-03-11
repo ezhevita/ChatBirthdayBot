@@ -58,7 +58,9 @@ var job = JobBuilder.Create<PostBirthdaysJob>()
 var trigger = TriggerBuilder.Create()
 	.WithIdentity("hourlyCheckBirthday", "birthdayBot")
 	.StartAt(DateBuilder.NextGivenMinuteDate(DateTimeOffset.UtcNow, 0))
-	.WithSimpleSchedule(x => x.WithIntervalInHours(1))
+	.WithSimpleSchedule(x => x
+		.WithIntervalInHours(1)
+		.RepeatForever())
 	.Build();
 
 await scheduler.ScheduleJob(job, trigger);
