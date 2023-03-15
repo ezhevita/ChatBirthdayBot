@@ -197,9 +197,8 @@ public partial class UpdateHandler : IUpdateHandler
 		}
 	}
 
-	private async Task UpdateChat(Chat chat)
-	{
-		await _context.Upsert(
+	private Task UpdateChat(Chat chat) =>
+		_context.Upsert(
 			new ChatRecord
 			{
 				Id = chat.Id,
@@ -212,10 +211,9 @@ public partial class UpdateHandler : IUpdateHandler
 				Locale = x.Locale,
 				Name = chat.Title,
 				ShouldPinNotify = x.ShouldPinNotify,
-				TimeZoneOffset = x.TimeZoneOffset
+				TimeZoneHourOffset = x.TimeZoneHourOffset
 			}
 		).RunAsync();
-	}
 
 	[LoggerMessage(
 		EventId = (int)LogEventId.PollingErrorOccurred, Level = LogLevel.Error,

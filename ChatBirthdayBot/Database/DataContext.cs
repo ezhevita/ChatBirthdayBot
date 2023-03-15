@@ -30,7 +30,7 @@ public class DataContext : DbContext
 
 				entity.Property(e => e.Name);
 				entity.Property(e => e.Locale);
-				entity.Property(e => e.TimeZoneOffset);
+				entity.Property(e => e.TimeZoneHourOffset);
 				entity.Property(e => e.CustomOffsetInHours);
 				entity.Property(e => e.ShouldPinNotify);
 			}

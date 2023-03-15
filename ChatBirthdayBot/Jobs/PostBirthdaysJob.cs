@@ -30,23 +30,11 @@ public partial class PostBirthdaysJob : IJob
 	{
 		var scheduleDate = context.ScheduledFireTimeUtc!.Value.UtcDateTime;
 		var scheduleHours = scheduleDate.Hour;
-		_logger.LogDebug("Starting job @ {Hours}", scheduleHours);
 
-		foreach (var chat in _context.Chats)
+		foreach (var chat in _context.Chats.Where(
+			         chat => (chat.TimeZoneHourOffset + chat.CustomOffsetInHours + 24) % 24 == scheduleHours))
 		{
-			var chatTimezoneOffsetHours = (int)chat.TimeZoneOffset.TotalHours;
-			var chatCustomOffset = chat.CustomOffsetInHours;
-			var totalOffsetHours = chatTimezoneOffsetHours + chatCustomOffset;
-
-			if ((totalOffsetHours + 24) % 24 != scheduleHours)
-			{
-				_logger.LogDebug(
-					"Ignored chat {ChatName} because {Offset} offset shouldn't fire at {Hours}", chat.Name, totalOffsetHours,
-					scheduleHours
-				);
-
-				continue;
-			}
+			var totalOffsetHours = chat.TimeZoneHourOffset + chat.CustomOffsetInHours;
 
 			int daysOffset;
 			if (totalOffsetHours < 0)
@@ -59,17 +47,13 @@ public partial class PostBirthdaysJob : IJob
 
 			var birthdayDay = scheduleDate.Date.AddDays(daysOffset);
 			var users = _context.Users
-				.Where(user => (user.BirthdayDay == birthdayDay.Day) && (user.BirthdayMonth == birthdayDay.Month) && user.Chats.Contains(chat))
+				.Where(
+					user => (user.BirthdayDay == birthdayDay.Day) && (user.BirthdayMonth == birthdayDay.Month) &&
+						user.Chats.Contains(chat))
 				.ToList();
 
-			LogExecuteJobForChat(chat.Id, scheduleHours, users.Count);
-
 			if (!users.Any())
-			{
-				_logger.LogDebug("Ignored chat {ChatName} because no members with birthdays", chat.Name);
-
 				continue;
-			}
 
 			var usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{HttpUtility.HtmlEncode(x.FirstName)}</a>");
 
@@ -94,10 +78,4 @@ public partial class PostBirthdaysJob : IJob
 		Message = "An error occurred while posting a birthday message"
 	)]
 	private partial void LogPostError(Exception ex);
-
-	[LoggerMessage(
-		EventId = (int)LogEventId.ExecutingPostBirthdaysJobForChat, Level = LogLevel.Information,
-		Message = "Executing PostBirthdays job for chat {ChatId} at {Hour}h, found {Members} birthday members"
-	)]
-	private partial void LogExecuteJobForChat(long chatId, int hour, int members);
 }

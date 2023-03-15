@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 #nullable disable
 
@@ -11,7 +10,7 @@ public class ChatRecord
 	public string Name { get; set; }
 	public string Locale { get; set; }
 
-	public TimeSpan TimeZoneOffset { get; set; }
+	public sbyte TimeZoneHourOffset { get; set; }
 	public byte CustomOffsetInHours { get; set; }
 	public bool ShouldPinNotify { get; set; }
 
