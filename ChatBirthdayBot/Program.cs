@@ -40,6 +40,7 @@ var host = Host.CreateDefaultBuilder(args)
 			services.AddScoped<ICommand, ListBirthdaysCommand>();
 			services.AddScoped<ICommand, RemoveBirthdayCommand>();
 			services.AddScoped<ICommand, SetBirthdayCommand>();
+			services.AddScoped<ICommand, StartCommand>();
 
 			services.AddScoped<ICommandHandler, CommandHandler>();
 

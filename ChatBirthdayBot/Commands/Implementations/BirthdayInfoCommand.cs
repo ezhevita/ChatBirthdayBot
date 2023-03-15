@@ -19,7 +19,7 @@ public class BirthdayInfoCommand : ICommand
 		_context = context;
 	}
 
-	public string CommandName => "birthday";
+	public virtual string CommandName => "birthday";
 	public bool ShouldBeExecutedForChatType(ChatType chatType) => chatType == ChatType.Private;
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
