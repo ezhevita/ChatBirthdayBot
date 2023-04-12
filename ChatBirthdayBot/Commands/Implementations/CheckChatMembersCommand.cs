@@ -31,7 +31,7 @@ public class CheckChatMembersCommand : ICommand
 		var chatId = message.Chat.Id;
 		var currentChatMember = await botClient.GetChatMemberAsync(chatId, message.From!.Id, cancellationToken);
 
-		if (currentChatMember.Status is not ChatMemberStatus.Administrator or ChatMemberStatus.Creator &&
+		if (currentChatMember.Status is not (ChatMemberStatus.Administrator or ChatMemberStatus.Creator) &&
 		    message.From.Id != _ownerId)
 			return null;
 
