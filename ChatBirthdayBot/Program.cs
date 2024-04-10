@@ -35,7 +35,6 @@ var host = Host.CreateDefaultBuilder(args)
 			services.AddSingleton<BotUserData>();
 
 			services.AddSingleton<ICommand, BirthdayInfoCommand>();
-			services.AddSingleton<ICommand, CheckChatMembersCommand>();
 			services.AddSingleton<ICommand, ListBirthdaysCommand>();
 			services.AddSingleton<ICommand, RemoveBirthdayCommand>();
 			services.AddSingleton<ICommand, SetBirthdayCommand>();
@@ -55,6 +54,10 @@ const string QuartzGroupName = "birthdayBot";
 
 await scheduler.ScheduleJob(CreateJob<PostBirthdaysJob>("checkBirthdays"), CreateHourlyTrigger("hourlyCheckBirthday"));
 await scheduler.ScheduleJob(CreateJob<UnpinBirthdaysMessagesJob>("unpinMessages"), CreateHourlyTrigger("hourlyUnpinMessages"));
+await scheduler.ScheduleJob(
+	CreateJob<CheckChatMembersJob>("checkChatMembers"),
+	TriggerBuilder.Create().WithIdentity("dailyCheckChatMembers", QuartzGroupName)
+		.WithSimpleSchedule(x => x.WithIntervalInHours(24).RepeatForever()).Build());
 
 using (var scope = host.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
 {
@@ -75,9 +78,8 @@ static ITrigger CreateHourlyTrigger(string name)
 	return TriggerBuilder.Create()
 		.WithIdentity(name, QuartzGroupName)
 		.StartAt(DateBuilder.NextGivenMinuteDate(DateTimeOffset.UtcNow, 0))
-		.WithSimpleSchedule(
-			x => x
-				.WithIntervalInHours(1)
-				.RepeatForever())
+		.WithSimpleSchedule(schedule => schedule
+			.WithIntervalInHours(1)
+			.RepeatForever())
 		.Build();
 }

@@ -11,5 +11,7 @@ public enum LogEventId
 	PrivateCommandMessageReceived,
 	ChatCommandMessageReceived,
 	MyChatMemberUpdateReceived,
-	ChatMemberUpdateReceived
+	ChatMemberUpdateReceived,
+	ChatMembersRemoved,
+	ChatMemberCheckFailed
 }
