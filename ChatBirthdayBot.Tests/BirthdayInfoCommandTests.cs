@@ -15,28 +15,6 @@ namespace ChatBirthdayBot.Tests;
 public class BirthdayInfoCommandTests : BaseTestClass
 {
 	[TestMethod]
-	public async Task ExecuteCommand_BirthdayNotSet()
-	{
-		await using var context = CreateContext();
-		await using var serviceProvider = CreateServiceProvider(context);
-
-		context.Users.Add(
-			new UserRecord
-			{
-				Id = 1,
-				FirstName = "test"
-			}
-		);
-
-		var command = new BirthdayInfoCommand(serviceProvider.GetRequiredService<IServiceScopeFactory>());
-
-		var result = await command.ExecuteCommand(
-			Mock.Of<ITelegramBotClient>(), new Message {From = new User {Id = 1}}, CancellationToken.None);
-
-		Assert.AreEqual(Lines.BirthdayNotSet, result);
-	}
-
-	[TestMethod]
 	public async Task ExecuteCommand_BirthdayIsSet()
 	{
 		await using var context = CreateContext();
@@ -50,14 +28,12 @@ public class BirthdayInfoCommandTests : BaseTestClass
 				BirthdayDay = 10,
 				BirthdayMonth = 10,
 				BirthdayYear = 2000
-			}
-		);
+			});
 
 		var command = new BirthdayInfoCommand(serviceProvider.GetRequiredService<IServiceScopeFactory>());
 
 		var result = await command.ExecuteCommand(
-			Mock.Of<ITelegramBotClient>(), new Message {From = new User {Id = 1}}, CancellationToken.None
-		);
+			Mock.Of<ITelegramBotClient>(), new Message {From = new User {Id = 1}}, CancellationToken.None);
 
 		Assert.AreEqual(string.Format(Lines.BirthdayDate, "10 October 2000"), result);
 	}
@@ -75,15 +51,34 @@ public class BirthdayInfoCommandTests : BaseTestClass
 				FirstName = "test",
 				BirthdayDay = 9,
 				BirthdayMonth = 11
-			}
-		);
+			});
 
 		var command = new BirthdayInfoCommand(serviceProvider.GetRequiredService<IServiceScopeFactory>());
 
 		var result = await command.ExecuteCommand(
-			Mock.Of<ITelegramBotClient>(), new Message {From = new User {Id = 1}}, CancellationToken.None
-		);
+			Mock.Of<ITelegramBotClient>(), new Message {From = new User {Id = 1}}, CancellationToken.None);
 
 		Assert.AreEqual(string.Format(Lines.BirthdayDate, "November 09"), result);
+	}
+
+	[TestMethod]
+	public async Task ExecuteCommand_BirthdayNotSet()
+	{
+		await using var context = CreateContext();
+		await using var serviceProvider = CreateServiceProvider(context);
+
+		context.Users.Add(
+			new UserRecord
+			{
+				Id = 1,
+				FirstName = "test"
+			});
+
+		var command = new BirthdayInfoCommand(serviceProvider.GetRequiredService<IServiceScopeFactory>());
+
+		var result = await command.ExecuteCommand(
+			Mock.Of<ITelegramBotClient>(), new Message {From = new User {Id = 1}}, CancellationToken.None);
+
+		Assert.AreEqual(Lines.BirthdayNotSet, result);
 	}
 }

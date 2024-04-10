@@ -12,9 +12,9 @@ namespace ChatBirthdayBot.Commands;
 
 public sealed partial class CommandHandler : ICommandHandler
 {
-	private readonly ILogger<CommandHandler> _logger;
-	private readonly Dictionary<string, ICommand> _commands;
 	private readonly string _botUsername;
+	private readonly Dictionary<string, ICommand> _commands;
+	private readonly ILogger<CommandHandler> _logger;
 
 	public CommandHandler(IEnumerable<ICommand> commands, ILogger<CommandHandler> logger, BotUserData botUserData)
 	{
@@ -64,8 +64,7 @@ public sealed partial class CommandHandler : ICommandHandler
 		{
 			var sentMessage = await botClient.SendTextMessageAsync(
 				message.Chat.Id, response, parseMode: ParseMode.Html, replyToMessageId: message.MessageId,
-				cancellationToken: cancellationToken
-			);
+				cancellationToken: cancellationToken);
 
 			await command.HandleSentMessage(sentMessage);
 		}
@@ -77,7 +76,6 @@ public sealed partial class CommandHandler : ICommandHandler
 
 	[LoggerMessage(
 		EventId = (int)LogEventId.RespondErrorOccurred, Level = LogLevel.Error,
-		Message = "Failed sending the response with an exception"
-	)]
+		Message = "Failed sending the response with an exception")]
 	private partial void LogRespondingError(Exception ex);
 }

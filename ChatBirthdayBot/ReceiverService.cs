@@ -9,8 +9,8 @@ namespace ChatBirthdayBot;
 public class ReceiverService
 {
 	private readonly ITelegramBotClient _botClient;
-	private readonly IUpdateHandler _updateHandlers;
 	private readonly BotUserData _botUserData;
+	private readonly IUpdateHandler _updateHandlers;
 
 	public ReceiverService(
 		ITelegramBotClient botClient,
@@ -34,10 +34,6 @@ public class ReceiverService
 
 		_botUserData.Username = me.Username!;
 
-		await _botClient.ReceiveAsync(
-			updateHandler: _updateHandlers,
-			receiverOptions: receiverOptions,
-			cancellationToken: stoppingToken
-		);
+		await _botClient.ReceiveAsync(_updateHandlers, receiverOptions, stoppingToken);
 	}
 }

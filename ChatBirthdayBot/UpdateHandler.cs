@@ -16,11 +16,11 @@ namespace ChatBirthdayBot;
 
 public partial class UpdateHandler : IUpdateHandler
 {
-	private readonly ILogger<UpdateHandler> _logger;
-	private readonly ICommandHandler _handler;
 	private readonly DataContext _context;
-	private readonly CultureInfo _russianCulture = CultureInfo.GetCultureInfoByIetfLanguageTag("ru-RU");
 	private readonly ConcurrentDictionary<long, DateTime> _dateTimesOfLastSentCommandInChat = new();
+	private readonly ICommandHandler _handler;
+	private readonly ILogger<UpdateHandler> _logger;
+	private readonly CultureInfo _russianCulture = CultureInfo.GetCultureInfoByIetfLanguageTag("ru-RU");
 
 	public UpdateHandler(ILogger<UpdateHandler> logger, ICommandHandler handler, DataContext context)
 	{
@@ -82,6 +82,12 @@ public partial class UpdateHandler : IUpdateHandler
 
 		return Task.CompletedTask;
 	}
+
+	[LoggerMessage(
+		EventId = (int)LogEventId.PollingErrorOccurred, Level = LogLevel.Error,
+		Message = "Polling error occured with an exception"
+	)]
+	private partial void LogPollingError(Exception ex);
 
 	private async Task ProcessDatabaseUpdates(Update update, CancellationToken cancellationToken)
 	{
@@ -158,6 +164,24 @@ public partial class UpdateHandler : IUpdateHandler
 		await _context.SaveChangesAsync(cancellationToken);
 	}
 
+	private Task<int> UpdateChat(Chat chat) =>
+		_context.Upsert(
+				new ChatRecord
+				{
+					Id = chat.Id,
+					Name = chat.Title!
+				})
+			.WhenMatched(
+				x => new ChatRecord
+				{
+					CustomOffsetInHours = x.CustomOffsetInHours,
+					Locale = x.Locale,
+					Name = chat.Title!,
+					ShouldPinNotify = x.ShouldPinNotify,
+					TimeZoneHourOffset = x.TimeZoneHourOffset
+				})
+			.RunAsync();
+
 	private async Task UpdateUser(User user)
 	{
 		await _context.Upsert(
@@ -196,28 +220,4 @@ public partial class UpdateHandler : IUpdateHandler
 			_context.UserChats.Add(participant);
 		}
 	}
-
-	private Task<int> UpdateChat(Chat chat) =>
-		_context.Upsert(
-			new ChatRecord
-			{
-				Id = chat.Id,
-				Name = chat.Title
-			}
-		).WhenMatched(
-			x => new ChatRecord
-			{
-				CustomOffsetInHours = x.CustomOffsetInHours,
-				Locale = x.Locale,
-				Name = chat.Title,
-				ShouldPinNotify = x.ShouldPinNotify,
-				TimeZoneHourOffset = x.TimeZoneHourOffset
-			}
-		).RunAsync();
-
-	[LoggerMessage(
-		EventId = (int)LogEventId.PollingErrorOccurred, Level = LogLevel.Error,
-		Message = "Polling error occured with an exception"
-	)]
-	private partial void LogPollingError(Exception ex);
 }

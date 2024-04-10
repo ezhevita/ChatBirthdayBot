@@ -31,7 +31,7 @@ public class PostBirthdaysJobTests : BaseTestClass
 		telegramClientMock.Setup(
 				x => x.MakeRequestAsync(
 					It.Is<SendMessageRequest>(
-						r => r.Text == "<a href=\"tg://user?id=1\">Test</a> — happy birthday!" && r.ChatId == -100
+						r => (r.Text == "<a href=\"tg://user?id=1\">Test</a> — happy birthday!") && (r.ChatId == -100)
 					),
 					It.IsAny<CancellationToken>()
 				)

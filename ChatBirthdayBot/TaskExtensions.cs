@@ -17,7 +17,6 @@ public static class TaskExtensions
 				{
 					// ignored
 				}
-			}
-		);
+			});
 	}
 }

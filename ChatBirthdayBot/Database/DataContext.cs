@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-#nullable disable
-
 namespace ChatBirthdayBot.Database;
 
 public class DataContext : DbContext
@@ -12,6 +10,12 @@ public class DataContext : DbContext
 		: base(options)
 	{
 	}
+
+	public virtual DbSet<ChatRecord> Chats { get; set; }
+	public virtual DbSet<UserRecord> Users { get; set; }
+
+	public virtual DbSet<UserChat> UserChats { get; set; }
+	public virtual DbSet<SentMessage> SentMessages { get; set; }
 
 	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 	{
@@ -33,8 +37,7 @@ public class DataContext : DbContext
 				entity.Property(e => e.TimeZoneHourOffset);
 				entity.Property(e => e.CustomOffsetInHours);
 				entity.Property(e => e.ShouldPinNotify);
-			}
-		);
+			});
 
 		modelBuilder.Entity<UserRecord>(
 			entity =>
@@ -55,8 +58,7 @@ public class DataContext : DbContext
 				entity.HasMany(p => p.Chats)
 					.WithMany(p => p.Users)
 					.UsingEntity<UserChat>();
-			}
-		);
+			});
 
 		modelBuilder.Entity<UserChat>(
 			entity =>
@@ -69,8 +71,7 @@ public class DataContext : DbContext
 				entity.Property(e => e.UserId);
 				entity.Property(e => e.ChatId);
 				entity.Property(e => e.IsPublic);
-			}
-		);
+			});
 
 		modelBuilder.Entity<SentMessage>(
 			entity =>
@@ -86,10 +87,4 @@ public class DataContext : DbContext
 				entity.Property(e => e.SendDateUtc);
 			});
 	}
-
-	public virtual DbSet<ChatRecord> Chats { get; set; }
-	public virtual DbSet<UserRecord> Users { get; set; }
-
-	public virtual DbSet<UserChat> UserChats { get; set; }
-	public virtual DbSet<SentMessage> SentMessages { get; set; }
 }

@@ -25,11 +25,10 @@ var host = Host.CreateDefaultBuilder(args)
 						var options = new TelegramBotClientOptions(botConfig.Token);
 
 						return new TelegramBotClient(options, httpClient);
-					}
-				);
+					});
 
 			services.AddDbContext<DataContext>(options => options.UseSqlite("Data Source=data.db"));
-			services.AddQuartz(x => x.UseMicrosoftDependencyInjectionJobFactory());
+			services.AddQuartz();
 			services.AddQuartzHostedService(x => x.WaitForJobsToComplete = true);
 			services.AddScoped<IUpdateHandler, UpdateHandler>();
 			services.AddScoped<ReceiverService>();
@@ -66,12 +65,10 @@ await host.RunAsync();
 
 return;
 
-static IJobDetail CreateJob<T>(string name) where T : IJob
-{
-	return JobBuilder.Create<T>()
+static IJobDetail CreateJob<T>(string name) where T : IJob =>
+	JobBuilder.Create<T>()
 		.WithIdentity(name, QuartzGroupName)
 		.Build();
-}
 
 static ITrigger CreateHourlyTrigger(string name)
 {

@@ -15,10 +15,7 @@ public class SetBirthdayCommand : ICommand
 {
 	private readonly IServiceScopeFactory _serviceScopeFactory;
 
-	public SetBirthdayCommand(IServiceScopeFactory serviceScopeFactory)
-	{
-		_serviceScopeFactory = serviceScopeFactory;
-	}
+	public SetBirthdayCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public string CommandName => "setbirthday";
 

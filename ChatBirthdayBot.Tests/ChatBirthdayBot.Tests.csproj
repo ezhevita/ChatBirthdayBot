@@ -8,16 +8,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Moq" Version="4.20.70" />
+		<PackageReference Include="Moq" Version="4.20.70"/>
 		<PackageReference Include="coverlet.collector" Version="6.0.2">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="MSTest" Version="3.3.1" />
+		<PackageReference Include="MSTest" Version="3.3.1"/>
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ChatBirthdayBot\ChatBirthdayBot.csproj" />
+		<ProjectReference Include="..\ChatBirthdayBot\ChatBirthdayBot.csproj"/>
 	</ItemGroup>
 
 </Project>

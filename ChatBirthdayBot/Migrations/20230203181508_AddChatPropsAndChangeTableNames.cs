@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ChatBirthdayBot.Migrations
 {
     /// <inheritdoc />
+    [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
     public partial class AddChatPropsAndChangeTableNames : Migration
     {
         /// <inheritdoc />

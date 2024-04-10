@@ -18,13 +18,10 @@ namespace ChatBirthdayBot.Commands;
 
 public class ListBirthdaysCommand : ICommand
 {
-	private readonly IServiceScopeFactory _serviceScopeFactory;
 	private static readonly ConcurrentDictionary<long, int> _lastSentBirthdaysMessage = new();
+	private readonly IServiceScopeFactory _serviceScopeFactory;
 
-	public ListBirthdaysCommand(IServiceScopeFactory serviceScopeFactory)
-	{
-		_serviceScopeFactory = serviceScopeFactory;
-	}
+	public ListBirthdaysCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public string CommandName => "birthdays";
 
@@ -34,8 +31,7 @@ public class ListBirthdaysCommand : ICommand
 	{
 		if (_lastSentBirthdaysMessage.TryGetValue(message.Chat.Id, out var messageID))
 		{
-			botClient.DeleteMessageAsync(message.Chat.Id, messageID, cancellationToken)
-				.RunInBackgroundSuppressingExceptions();
+			botClient.DeleteMessageAsync(message.Chat.Id, messageID, cancellationToken).RunInBackgroundSuppressingExceptions();
 		}
 
 		var birthdays = await GetNearestBirthdaysForChat(message.Chat.Id, cancellationToken);
@@ -44,18 +40,42 @@ public class ListBirthdaysCommand : ICommand
 			return Lines.NoBirthdays;
 
 		return string.Join(
-			'\n',
-			birthdays.Select(
+			'\n', birthdays.Select(
 				x =>
 				{
 					DateTime birthdayDate = new(x.BirthdayYear ?? 0004, x.BirthdayMonth!.Value, x.BirthdayDay!.Value);
 
-					return
-						$"<b>{birthdayDate.ToString("d MMM", CultureInfo.CurrentCulture)}</b> — {Escape(x.FirstName)}{(x.LastName != null ? " " + Escape(x.LastName) : "")}{(x.BirthdayYear != null ? $" <b>({AgeFromDate(birthdayDate) + 1})</b>" : "")}";
-				}
-			)
-		);
+					return $"<b>{birthdayDate.ToString("d MMM", CultureInfo.CurrentCulture)}</b> — {Escape(x.FirstName)}" +
+						$"{(x.LastName != null ? " " + Escape(x.LastName) : "")}" +
+						$"{(x.BirthdayYear != null ? $" <b>({AgeFromDate(birthdayDate) + 1})</b>" : "")}";
+				}));
 	}
+
+	public Task HandleSentMessage(Message sentMessage)
+	{
+		_lastSentBirthdaysMessage[sentMessage.Chat.Id] = sentMessage.MessageId;
+
+		return Task.CompletedTask;
+	}
+
+	private static int AgeFromDate(DateTime birthdate)
+	{
+		var today = DateTime.UtcNow.Date;
+		var age = (byte)(today.Year - birthdate.Year);
+		if (birthdate.Date > today.AddYears(-age))
+		{
+			age--;
+		}
+
+		if ((birthdate.Day == today.Day) && (birthdate.Month == today.Month))
+		{
+			age--;
+		}
+
+		return age;
+	}
+
+	private static string Escape(string message) => HttpUtility.HtmlEncode(message);
 
 	private async Task<List<UserRecord>> GetNearestBirthdaysForChat(long chatID, CancellationToken cancellationToken)
 	{
@@ -73,31 +93,5 @@ public class ListBirthdaysCommand : ICommand
 			.Select(x => x.userChat.User)
 			.Take(10)
 			.ToListAsync(cancellationToken: cancellationToken);
-	}
-
-	public Task HandleSentMessage(Message sentMessage)
-	{
-		_lastSentBirthdaysMessage[sentMessage.Chat.Id] = sentMessage.MessageId;
-
-		return Task.CompletedTask;
-	}
-
-	private static string Escape(string message) => HttpUtility.HtmlEncode(message);
-
-	private static int AgeFromDate(DateTime birthdate)
-	{
-		var today = DateTime.UtcNow.Date;
-		var age = (byte)(today.Year - birthdate.Year);
-		if (birthdate.Date > today.AddYears(-age))
-		{
-			age--;
-		}
-
-		if (birthdate.Day == today.Day && birthdate.Month == today.Month)
-		{
-			age--;
-		}
-
-		return age;
 	}
 }

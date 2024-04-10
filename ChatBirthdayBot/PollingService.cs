@@ -9,8 +9,8 @@ namespace ChatBirthdayBot;
 
 public partial class PollingService : BackgroundService
 {
-	private readonly IServiceProvider _serviceProvider;
 	private readonly ILogger _logger;
+	private readonly IServiceProvider _serviceProvider;
 
 	public PollingService(IServiceProvider serviceProvider, ILogger<PollingService> logger)
 	{
@@ -38,8 +38,6 @@ public partial class PollingService : BackgroundService
 		}
 	}
 
-	[LoggerMessage(
-		EventId = (int)LogEventId.HandlingErrorOccurred, Level = LogLevel.Error, Message = "Handling updates failed"
-	)]
+	[LoggerMessage(EventId = (int)LogEventId.HandlingErrorOccurred, Level = LogLevel.Error, Message = "Handling updates failed")]
 	private partial void LogHandlingError(Exception ex);
 }

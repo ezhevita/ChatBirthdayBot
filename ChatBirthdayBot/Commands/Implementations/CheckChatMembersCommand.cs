@@ -15,8 +15,8 @@ namespace ChatBirthdayBot.Commands;
 
 public class CheckChatMembersCommand : ICommand
 {
-	private readonly IServiceScopeFactory _serviceScopeFactory;
 	private readonly long _ownerId;
+	private readonly IServiceScopeFactory _serviceScopeFactory;
 
 	public CheckChatMembersCommand(IServiceScopeFactory serviceScopeFactory, IOptions<BotConfiguration> botConfig)
 	{
@@ -33,7 +33,7 @@ public class CheckChatMembersCommand : ICommand
 		var currentChatMember = await botClient.GetChatMemberAsync(chatId, message.From!.Id, cancellationToken);
 
 		if (currentChatMember.Status is not (ChatMemberStatus.Administrator or ChatMemberStatus.Creator) &&
-		    message.From.Id != _ownerId)
+		    (message.From.Id != _ownerId))
 			return null;
 
 		await using var scope = _serviceScopeFactory.CreateAsyncScope();
@@ -41,7 +41,7 @@ public class CheckChatMembersCommand : ICommand
 
 		var chat = await context.Chats
 			.Include(x => x.UserChats)
-			.FirstOrDefaultAsync(chat => chat.Id == chatId, cancellationToken: cancellationToken);
+			.FirstOrDefaultAsync(chat => chat.Id == chatId, cancellationToken);
 
 		if (chat == null)
 			return null;

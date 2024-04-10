@@ -15,10 +15,7 @@ public class BirthdayInfoCommand : ICommand
 {
 	private readonly IServiceScopeFactory _serviceScopeFactory;
 
-	public BirthdayInfoCommand(IServiceScopeFactory serviceScopeFactory)
-	{
-		_serviceScopeFactory = serviceScopeFactory;
-	}
+	public BirthdayInfoCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public virtual string CommandName => "birthday";
 	public bool ShouldBeExecutedForChatType(ChatType chatType) => chatType == ChatType.Private;
@@ -38,9 +35,7 @@ public class BirthdayInfoCommand : ICommand
 		DateTime date = new(currentUser.BirthdayYear ?? 0004, currentUser.BirthdayMonth.Value, currentUser.BirthdayDay.Value);
 
 		return string.Format(
-			CultureInfo.CurrentCulture, Lines.BirthdayDate, date.Year == 0004
-				? date.ToString("M", CultureInfo.CurrentCulture)
-				: date.ToLongDateStringWithoutDayOfWeek()
-		);
+			CultureInfo.CurrentCulture, Lines.BirthdayDate,
+			date.Year == 0004 ? date.ToString("M", CultureInfo.CurrentCulture) : date.ToLongDateStringWithoutDayOfWeek());
 	}
 }

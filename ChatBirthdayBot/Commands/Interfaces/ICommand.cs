@@ -10,9 +10,9 @@ public interface ICommand
 {
 	public string CommandName { get; }
 
-	public bool ShouldBeExecutedForChatType(ChatType chatType);
-
 	public Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken);
 
 	public Task HandleSentMessage(Message sentMessage) => Task.CompletedTask;
+
+	public bool ShouldBeExecutedForChatType(ChatType chatType);
 }

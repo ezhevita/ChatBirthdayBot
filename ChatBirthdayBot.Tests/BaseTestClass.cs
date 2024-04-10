@@ -33,14 +33,15 @@ public class BaseTestClass : IDisposable
 		CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
 	}
 
+	public void Dispose() => _connection.Dispose();
+
 	protected DataContext CreateContext() => new(_contextOptions);
 
 	protected ServiceProvider CreateServiceProvider(DataContext context)
 	{
 		var serviceCollection = new ServiceCollection();
 		serviceCollection.AddScoped(_ => context);
+
 		return serviceCollection.BuildServiceProvider();
 	}
-
-	public void Dispose() => _connection.Dispose();
 }

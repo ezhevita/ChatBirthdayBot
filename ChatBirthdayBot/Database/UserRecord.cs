@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-#nullable disable
-
 namespace ChatBirthdayBot.Database;
 
 public class UserRecord
@@ -13,14 +11,13 @@ public class UserRecord
 	public ushort? BirthdayYear { get; set; }
 
 	[MaxLength(64)]
-	public string FirstName { get; set; }
+	public string FirstName { get; set; } = "";
 
 	[MaxLength(64)]
-	public string LastName { get; set; }
+	public string? LastName { get; set; }
 
 	[MaxLength(32)]
-	public string Username { get; set; }
+	public string? Username { get; set; }
 
-	public ICollection<ChatRecord> Chats { get; set; }
-	public List<UserChat> UserChats { get; set; }
+	public virtual ICollection<ChatRecord> Chats { get; set; } = null!;
 }

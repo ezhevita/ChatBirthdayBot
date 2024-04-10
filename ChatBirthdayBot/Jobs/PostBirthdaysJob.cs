@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using ChatBirthdayBot.Database;
@@ -62,13 +63,13 @@ public partial class PostBirthdaysJob : IJob
 			{
 				var message = await _botClient.SendTextMessageAsync(
 					chat.Id, string.Format(CultureInfo.CurrentCulture, Lines.BirthdayMessage, string.Join(", ", usernamesToPost)),
-					parseMode: ParseMode.Html
-				);
+					parseMode: ParseMode.Html);
 
 				await _botClient.PinChatMessageAsync(chat.Id, message.MessageId, true);
 
 				await _dataContext.SentMessages.AddAsync(
 					new SentMessage {ChatId = chat.Id, MessageId = message.MessageId, SendDateUtc = scheduleDate});
+				await _dataContext.SaveChangesAsync();
 			}
 			catch (Exception e)
 			{

@@ -13,10 +13,7 @@ public class RemoveBirthdayCommand : ICommand
 {
 	private readonly IServiceScopeFactory _serviceScopeFactory;
 
-	public RemoveBirthdayCommand(IServiceScopeFactory serviceScopeFactory)
-	{
-		_serviceScopeFactory = serviceScopeFactory;
-	}
+	public RemoveBirthdayCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public string CommandName => "removebirthday";
 
