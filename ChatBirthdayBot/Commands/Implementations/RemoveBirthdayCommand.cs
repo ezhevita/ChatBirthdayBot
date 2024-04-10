@@ -27,19 +27,19 @@ public class RemoveBirthdayCommand : ICommand
 		await using var scope = _serviceScopeFactory.CreateAsyncScope();
 		var context = scope.ServiceProvider.GetRequiredService<DataContext>();
 
-		var currentUser = await context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
+		var currentUser = await context.Users.FindAsync([message.From!.Id], cancellationToken);
 
-		if (currentUser!.BirthdayDay != null)
+		if (currentUser!.BirthdayDay == null)
 		{
-			currentUser.BirthdayYear = null;
-			currentUser.BirthdayMonth = null;
-			currentUser.BirthdayDay = null;
-
-			await context.SaveChangesAsync(cancellationToken);
-
-			return Lines.BirthdayRemoved;
+			return Lines.BirthdayNotSet;
 		}
 
-		return Lines.BirthdayNotSet;
+		currentUser.BirthdayYear = null;
+		currentUser.BirthdayMonth = null;
+		currentUser.BirthdayDay = null;
+
+		await context.SaveChangesAsync(cancellationToken);
+
+		return Lines.BirthdayRemoved;
 	}
 }

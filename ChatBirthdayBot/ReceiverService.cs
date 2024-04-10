@@ -26,7 +26,7 @@ public class ReceiverService
 	{
 		var receiverOptions = new ReceiverOptions
 		{
-			AllowedUpdates = new[] {UpdateType.Message, UpdateType.ChatMember, UpdateType.MyChatMember},
+			AllowedUpdates = [UpdateType.Message, UpdateType.ChatMember, UpdateType.MyChatMember],
 			ThrowPendingUpdates = false
 		};
 

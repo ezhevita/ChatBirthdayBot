@@ -52,7 +52,7 @@ public partial class PostBirthdaysJob : IJob
 						user.Chats.Contains(chat))
 				.ToList();
 
-			if (!users.Any())
+			if (users.Count == 0)
 				continue;
 
 			var usernamesToPost = users.Select(

@@ -29,7 +29,7 @@ public class BirthdayInfoCommand : ICommand
 		await using (var scope = _serviceScopeFactory.CreateAsyncScope())
 		{
 			var context = scope.ServiceProvider.GetRequiredService<DataContext>();
-			currentUser = await context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
+			currentUser = await context.Users.FindAsync([message.From!.Id], cancellationToken);
 		}
 
 		if (currentUser is not {BirthdayDay: not null, BirthdayMonth: not null})

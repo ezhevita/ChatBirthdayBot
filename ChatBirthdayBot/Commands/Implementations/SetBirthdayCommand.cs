@@ -29,7 +29,7 @@ public class SetBirthdayCommand : ICommand
 		await using var scope = _serviceScopeFactory.CreateAsyncScope();
 		var context = scope.ServiceProvider.GetRequiredService<DataContext>();
 
-		var currentUser = await context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
+		var currentUser = await context.Users.FindAsync([message.From!.Id], cancellationToken);
 
 		var spaceIndex = message.Text!.IndexOf(' ', StringComparison.Ordinal);
 

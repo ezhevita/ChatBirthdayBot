@@ -4,9 +4,9 @@ namespace ChatBirthdayBot.Database;
 
 public class SentMessage
 {
-	public long ChatId { get; set; }
-	public int MessageId { get; set; }
-	public DateTime SendDateUtc { get; set; }
+	public long ChatId { get; init; }
+	public int MessageId { get; init; }
+	public DateTime SendDateUtc { get; init; }
 
-	public ChatRecord Chat { get; set; }
+	public ChatRecord Chat { get; init; }
 }

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using ChatBirthdayBot.Database;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Quartz;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -14,14 +13,11 @@ public class UnpinBirthdaysMessagesJob : IJob
 {
 	private readonly ITelegramBotClient _botClient;
 	private readonly DataContext _dataContext;
-	private readonly ILogger<UnpinBirthdaysMessagesJob> _logger;
 
-	public UnpinBirthdaysMessagesJob(ITelegramBotClient botClient, DataContext dataContext,
-		ILogger<UnpinBirthdaysMessagesJob> logger)
+	public UnpinBirthdaysMessagesJob(ITelegramBotClient botClient, DataContext dataContext)
 	{
 		_botClient = botClient;
 		_dataContext = dataContext;
-		_logger = logger;
 	}
 
 	public async Task Execute(IJobExecutionContext context)

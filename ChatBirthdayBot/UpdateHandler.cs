@@ -49,7 +49,7 @@ public partial class UpdateHandler : IUpdateHandler
 		if (string.IsNullOrEmpty(messageText))
 			return;
 
-		if (!messageText.StartsWith("/", StringComparison.Ordinal))
+		if (!messageText.StartsWith('/'))
 			return;
 
 		if (message.From == null)
@@ -128,7 +128,7 @@ public partial class UpdateHandler : IUpdateHandler
 			{
 				var user = update.ChatMember.NewChatMember.User;
 				var chat = update.ChatMember.Chat;
-				var participant = await _context.UserChats.FindAsync(new object[] {user.Id, chat.Id}, cancellationToken);
+				var participant = await _context.UserChats.FindAsync([user.Id, chat.Id], cancellationToken);
 				if (participant != null)
 				{
 					_context.UserChats.Remove(participant);
@@ -197,7 +197,7 @@ public partial class UpdateHandler : IUpdateHandler
 		}
 	}
 
-	private Task UpdateChat(Chat chat) =>
+	private Task<int> UpdateChat(Chat chat) =>
 		_context.Upsert(
 			new ChatRecord
 			{

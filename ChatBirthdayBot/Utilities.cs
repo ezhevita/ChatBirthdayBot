@@ -15,7 +15,9 @@ public static class Utilities
 	public static string ToLongDateStringWithoutDayOfWeek(this DateTime d)
 	{
 		var currentCulture = CultureInfo.CurrentCulture;
+		// ReSharper disable InconsistentlySynchronizedField - readonly access is thread-safe
 		if (_cachedLongDatePatterns.TryGetValue(currentCulture, out var pattern))
+			// ReSharper restore InconsistentlySynchronizedField
 		{
 			return d.ToString(pattern, CultureInfo.CurrentCulture);
 		}
