@@ -57,7 +57,7 @@ public partial class CheckChatMembersJob : IJob
 		LogChatMembersRemoved(membersToRemove.Count);
 	}
 
-	[LoggerMessage(LogLevel.Information, "{Count} chat members removed", EventId = (int)LogEventId.ChatMembersRemoved)]
+	[LoggerMessage(LogLevel.Information, "{MembersRemoved} chat members removed", EventId = (int)LogEventId.ChatMembersRemoved)]
 	private partial void LogChatMembersRemoved(int membersRemoved);
 
 	[LoggerMessage(LogLevel.Warning, "Chat member check failed", EventId = (int)LogEventId.ChatMemberCheckFailed)]
