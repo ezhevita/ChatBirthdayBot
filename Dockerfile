@@ -12,7 +12,7 @@ WORKDIR "/src/ChatBirthdayBot"
 RUN dotnet build "ChatBirthdayBot.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "ChatBirthdayBot.csproj" -c Release -r alpine-x64 --self-contained false -o /app/publish
+RUN dotnet publish "ChatBirthdayBot.csproj" -c Release -r linux-musl-x64 --self-contained false -o /app/publish
 
 FROM base AS final
 WORKDIR /app
