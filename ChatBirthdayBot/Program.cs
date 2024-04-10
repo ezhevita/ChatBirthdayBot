@@ -54,7 +54,7 @@ const string QuartzGroupName = "birthdayBot";
 
 await scheduler.ScheduleJob(CreateJob<PostBirthdaysJob>("checkBirthdays"), CreateTrigger("hourlyCheckBirthday", 1));
 await scheduler.ScheduleJob(CreateJob<UnpinBirthdaysMessagesJob>("unpinMessages"), CreateTrigger("hourlyUnpinMessages", 1));
-await scheduler.ScheduleJob(CreateJob<CheckChatMembersJob>("checkChatMembers"), CreateTrigger("dailyCheckChatMembers", 1));
+await scheduler.ScheduleJob(CreateJob<CheckChatMembersJob>("checkChatMembers"), CreateTrigger("dailyCheckChatMembers", 24));
 
 using (var scope = host.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
 {
