@@ -62,7 +62,7 @@ public partial class PostBirthdaysJob : IJob
 			{
 				var message = await _botClient.SendTextMessageAsync(
 					chat.Id, string.Format(CultureInfo.CurrentCulture, Lines.BirthdayMessage, string.Join(", ", usernamesToPost)),
-					ParseMode.Html
+					parseMode: ParseMode.Html
 				);
 
 				await _botClient.PinChatMessageAsync(chat.Id, message.MessageId, true);

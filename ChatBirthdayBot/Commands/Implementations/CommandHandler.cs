@@ -63,7 +63,7 @@ public sealed partial class CommandHandler : ICommandHandler
 		try
 		{
 			var sentMessage = await botClient.SendTextMessageAsync(
-				message.Chat.Id, response, ParseMode.Html, replyToMessageId: message.MessageId,
+				message.Chat.Id, response, parseMode: ParseMode.Html, replyToMessageId: message.MessageId,
 				cancellationToken: cancellationToken
 			);
 
