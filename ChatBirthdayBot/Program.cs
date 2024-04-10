@@ -52,12 +52,9 @@ var scheduler = await schedulerFactory.GetScheduler();
 
 const string QuartzGroupName = "birthdayBot";
 
-await scheduler.ScheduleJob(CreateJob<PostBirthdaysJob>("checkBirthdays"), CreateHourlyTrigger("hourlyCheckBirthday"));
-await scheduler.ScheduleJob(CreateJob<UnpinBirthdaysMessagesJob>("unpinMessages"), CreateHourlyTrigger("hourlyUnpinMessages"));
-await scheduler.ScheduleJob(
-	CreateJob<CheckChatMembersJob>("checkChatMembers"),
-	TriggerBuilder.Create().WithIdentity("dailyCheckChatMembers", QuartzGroupName)
-		.WithSimpleSchedule(x => x.WithIntervalInHours(24).RepeatForever()).Build());
+await scheduler.ScheduleJob(CreateJob<PostBirthdaysJob>("checkBirthdays"), CreateTrigger("hourlyCheckBirthday", 1));
+await scheduler.ScheduleJob(CreateJob<UnpinBirthdaysMessagesJob>("unpinMessages"), CreateTrigger("hourlyUnpinMessages", 1));
+await scheduler.ScheduleJob(CreateJob<CheckChatMembersJob>("checkChatMembers"), CreateTrigger("dailyCheckChatMembers", 1));
 
 using (var scope = host.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
 {
@@ -73,13 +70,13 @@ static IJobDetail CreateJob<T>(string name) where T : IJob =>
 		.WithIdentity(name, QuartzGroupName)
 		.Build();
 
-static ITrigger CreateHourlyTrigger(string name)
+static ITrigger CreateTrigger(string name, int hours)
 {
 	return TriggerBuilder.Create()
 		.WithIdentity(name, QuartzGroupName)
 		.StartAt(DateBuilder.NextGivenMinuteDate(DateTimeOffset.UtcNow, 0))
 		.WithSimpleSchedule(schedule => schedule
-			.WithIntervalInHours(1)
+			.WithIntervalInHours(hours)
 			.RepeatForever())
 		.Build();
 }
