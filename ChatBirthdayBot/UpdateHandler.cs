@@ -95,15 +95,18 @@ public partial class UpdateHandler : IUpdateHandler
 
 		switch (update.Type)
 		{
-			case UpdateType.MyChatMember
-				when update.MyChatMember!.NewChatMember.Status is ChatMemberStatus.Member or ChatMemberStatus.Administrator:
+			case UpdateType.MyChatMember when update.MyChatMember! is
+				{
+					NewChatMember.Status: ChatMemberStatus.Member or ChatMemberStatus.Administrator,
+					Chat.Type: ChatType.Supergroup or ChatType.Group
+				}:
 			{
-				await UpdateChat(update.MyChatMember.Chat);
+				await UpdateChat(update.MyChatMember!.Chat);
 
 				break;
 			}
 			case UpdateType.MyChatMember
-				when update.MyChatMember.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left:
+				when update.MyChatMember!.NewChatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left:
 			{
 				var chat = update.MyChatMember.Chat;
 				var dbChat = await _context.Chats
@@ -185,24 +188,24 @@ public partial class UpdateHandler : IUpdateHandler
 	private async Task UpdateUser(User user)
 	{
 		await _context.Upsert(
-			new UserRecord
-			{
-				Id = user.Id,
-				FirstName = user.FirstName,
-				LastName = user.LastName,
-				Username = user.Username
-			}
-		).WhenMatched(
-			x => new UserRecord
-			{
-				BirthdayDay = x.BirthdayDay,
-				BirthdayMonth = x.BirthdayMonth,
-				BirthdayYear = x.BirthdayYear,
-				FirstName = user.FirstName,
-				LastName = user.LastName,
-				Username = user.Username
-			}
-		).RunAsync();
+				new UserRecord
+				{
+					Id = user.Id,
+					FirstName = user.FirstName,
+					LastName = user.LastName,
+					Username = user.Username
+				})
+			.WhenMatched(
+				x => new UserRecord
+				{
+					BirthdayDay = x.BirthdayDay,
+					BirthdayMonth = x.BirthdayMonth,
+					BirthdayYear = x.BirthdayYear,
+					FirstName = user.FirstName,
+					LastName = user.LastName,
+					Username = user.Username
+				})
+			.RunAsync();
 	}
 
 	private async Task UpdateUserChat(Chat chat, User user)

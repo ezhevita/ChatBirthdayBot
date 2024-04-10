@@ -35,17 +35,41 @@ public partial class CheckChatMembersJob : IJob
 		var membersToRemove = new List<UserChat>();
 		var batchMembersToRemove = new List<UserChat>();
 
+		var botAccount = await _telegramBotClient.GetMeAsync();
+
 		var batch = await dataContext.UserChats
 			.OrderBy(x => x.ChatId)
 			.ThenBy(x => x.UserId)
 			.Take(100)
 			.ToListAsync();
 
+		var cachedBotStatus = new Dictionary<long, ChatMemberStatus>();
 		var i = 0;
 		while (batch.Count > 0)
 		{
 			foreach (var userChat in batch)
 			{
+				if (!cachedBotStatus.TryGetValue(userChat.ChatId, out var status))
+				{
+					try
+					{
+						status = (await _telegramBotClient.GetChatMemberAsync(userChat.ChatId, botAccount.Id)).Status;
+					}
+					catch (ApiRequestException)
+					{
+						// Probably chat no longer exists for bot
+						status = ChatMemberStatus.Kicked;
+					}
+
+					cachedBotStatus[userChat.ChatId] = status;
+				}
+
+				if (status != ChatMemberStatus.Administrator)
+				{
+					// Some unexpected things might happen, telegram doesn't say exactly which ones :shrug:
+					continue;
+				}
+
 				try
 				{
 					var chatMember = await _telegramBotClient.GetChatMemberAsync(userChat.ChatId, userChat.UserId);
@@ -64,7 +88,6 @@ public partial class CheckChatMembersJob : IJob
 				}
 			}
 
-			LogChatMembersBatchProcessed(batchMembersToRemove.Count, i);
 			membersToRemove.AddRange(batchMembersToRemove);
 			batchMembersToRemove.Clear();
 
@@ -82,11 +105,6 @@ public partial class CheckChatMembersJob : IJob
 
 		LogChatMembersRemoved(membersToRemove.Count);
 	}
-
-	[LoggerMessage(
-		LogLevel.Debug, "Batch #{BatchNumber} processed, {MembersToRemove} members to remove",
-		EventId = (int)LogEventId.ChatMemberCheckBatchProcessed)]
-	private partial void LogChatMembersBatchProcessed(int membersToRemove, int batchNumber);
 
 	[LoggerMessage(LogLevel.Information, "{MembersRemoved} chat members removed", EventId = (int)LogEventId.ChatMembersRemoved)]
 	private partial void LogChatMembersRemoved(int membersRemoved);

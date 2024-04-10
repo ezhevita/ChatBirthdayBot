@@ -13,6 +13,5 @@ public enum LogEventId
 	MyChatMemberUpdateReceived,
 	ChatMemberUpdateReceived,
 	ChatMembersRemoved,
-	ChatMemberCheckFailed,
-	ChatMemberCheckBatchProcessed
+	ChatMemberCheckFailed
 }
