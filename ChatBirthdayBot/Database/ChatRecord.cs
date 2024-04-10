@@ -11,7 +11,7 @@ public class ChatRecord
 	public string Name { get; set; } = "";
 
 	[MaxLength(10)]
-	public string Locale { get; set; } = "";
+	public string? Locale { get; set; }
 
 	public sbyte TimeZoneHourOffset { get; set; }
 	public byte CustomOffsetInHours { get; set; }
