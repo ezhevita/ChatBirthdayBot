@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -12,11 +13,11 @@ namespace ChatBirthdayBot.Commands;
 
 public class SetBirthdayCommand : ICommand
 {
-	private readonly DataContext _context;
+	private readonly IServiceScopeFactory _serviceScopeFactory;
 
-	public SetBirthdayCommand(DataContext context)
+	public SetBirthdayCommand(IServiceScopeFactory serviceScopeFactory)
 	{
-		_context = context;
+		_serviceScopeFactory = serviceScopeFactory;
 	}
 
 	public string CommandName => "setbirthday";
@@ -25,7 +26,10 @@ public class SetBirthdayCommand : ICommand
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{
-		var currentUser = await _context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
+		await using var scope = _serviceScopeFactory.CreateAsyncScope();
+		var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+		var currentUser = await context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
 
 		var spaceIndex = message.Text!.IndexOf(' ', StringComparison.Ordinal);
 
@@ -50,7 +54,7 @@ public class SetBirthdayCommand : ICommand
 		currentUser.BirthdayMonth = (byte)birthdayDate.Month;
 		currentUser.BirthdayYear = birthdayDate.Year == 0004 ? null : (ushort?)birthdayDate.Year;
 
-		await _context.SaveChangesAsync(cancellationToken);
+		await context.SaveChangesAsync(cancellationToken);
 
 		return Lines.BirthdaySetSuccessfully;
 	}

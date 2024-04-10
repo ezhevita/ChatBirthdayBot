@@ -3,6 +3,7 @@ using System.Globalization;
 using ChatBirthdayBot.Database;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChatBirthdayBot.Tests;
 
@@ -11,7 +12,7 @@ public class BaseTestClass : IDisposable
 	private readonly SqliteConnection _connection;
 	private readonly DbContextOptions<DataContext> _contextOptions;
 
-	public BaseTestClass()
+	protected BaseTestClass()
 	{
 		// Create and open a connection. This creates the SQLite in-memory database, which will persist until the connection is closed
 		// at the end of the test (see Dispose below).
@@ -33,6 +34,13 @@ public class BaseTestClass : IDisposable
 	}
 
 	protected DataContext CreateContext() => new(_contextOptions);
+
+	protected ServiceProvider CreateServiceProvider(DataContext context)
+	{
+		var serviceCollection = new ServiceCollection();
+		serviceCollection.AddScoped(_ => context);
+		return serviceCollection.BuildServiceProvider();
+	}
 
 	public void Dispose() => _connection.Dispose();
 }

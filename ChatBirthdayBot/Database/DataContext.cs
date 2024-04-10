@@ -71,12 +71,25 @@ public class DataContext : DbContext
 				entity.Property(e => e.IsPublic);
 			}
 		);
+
+		modelBuilder.Entity<SentMessage>(
+			entity =>
+			{
+				entity.HasKey(e => new {e.ChatId, e.MessageId});
+
+				entity.HasOne(e => e.Chat)
+					.WithMany(e => e.SentMessages)
+					.HasForeignKey(e => e.ChatId);
+
+				entity.Property(e => e.ChatId);
+				entity.Property(e => e.MessageId);
+				entity.Property(e => e.SendDateUtc);
+			});
 	}
 
-	// ReSharper disable UnusedAutoPropertyAccessor.Global
 	public virtual DbSet<ChatRecord> Chats { get; set; }
 	public virtual DbSet<UserRecord> Users { get; set; }
 
 	public virtual DbSet<UserChat> UserChats { get; set; }
-	// ReSharper restore UnusedAutoPropertyAccessor.Global
+	public virtual DbSet<SentMessage> SentMessages { get; set; }
 }

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChatBirthdayBot.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -14,12 +15,12 @@ namespace ChatBirthdayBot.Commands;
 
 public class CheckChatMembersCommand : ICommand
 {
-	private readonly DataContext _context;
+	private readonly IServiceScopeFactory _serviceScopeFactory;
 	private readonly long _ownerId;
 
-	public CheckChatMembersCommand(DataContext context, IOptions<BotConfiguration> botConfig)
+	public CheckChatMembersCommand(IServiceScopeFactory serviceScopeFactory, IOptions<BotConfiguration> botConfig)
 	{
-		_context = context;
+		_serviceScopeFactory = serviceScopeFactory;
 		_ownerId = botConfig.Value.UserOwnerId;
 	}
 
@@ -35,7 +36,10 @@ public class CheckChatMembersCommand : ICommand
 		    message.From.Id != _ownerId)
 			return null;
 
-		var chat = await _context.Chats
+		await using var scope = _serviceScopeFactory.CreateAsyncScope();
+		var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+		var chat = await context.Chats
 			.Include(x => x.UserChats)
 			.FirstOrDefaultAsync(chat => chat.Id == chatId, cancellationToken: cancellationToken);
 
@@ -59,9 +63,9 @@ public class CheckChatMembersCommand : ICommand
 			}
 		}
 
-		_context.UserChats.RemoveRange(membersToRemove);
+		context.UserChats.RemoveRange(membersToRemove);
 
-		await _context.SaveChangesAsync(cancellationToken);
+		await context.SaveChangesAsync(cancellationToken);
 
 		return $"{membersToRemove.Count} chat members removed";
 	}

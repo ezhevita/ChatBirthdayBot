@@ -1,10 +1,10 @@
-using ChatBirthdayBot.Database;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ChatBirthdayBot.Commands;
 
 public class StartCommand : BirthdayInfoCommand
 {
-	public StartCommand(DataContext context) : base(context)
+	public StartCommand(IServiceScopeFactory serviceScopeFactory) : base(serviceScopeFactory)
 	{
 	}
 

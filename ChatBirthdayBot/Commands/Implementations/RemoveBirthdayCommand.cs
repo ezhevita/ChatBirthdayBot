@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -10,11 +11,11 @@ namespace ChatBirthdayBot.Commands;
 
 public class RemoveBirthdayCommand : ICommand
 {
-	private readonly DataContext _context;
+	private readonly IServiceScopeFactory _serviceScopeFactory;
 
-	public RemoveBirthdayCommand(DataContext context)
+	public RemoveBirthdayCommand(IServiceScopeFactory serviceScopeFactory)
 	{
-		_context = context;
+		_serviceScopeFactory = serviceScopeFactory;
 	}
 
 	public string CommandName => "removebirthday";
@@ -23,7 +24,10 @@ public class RemoveBirthdayCommand : ICommand
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{
-		var currentUser = await _context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
+		await using var scope = _serviceScopeFactory.CreateAsyncScope();
+		var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+		var currentUser = await context.Users.FindAsync(new object[] {message.From!.Id}, cancellationToken);
 
 		if (currentUser!.BirthdayDay != null)
 		{
@@ -31,7 +35,7 @@ public class RemoveBirthdayCommand : ICommand
 			currentUser.BirthdayMonth = null;
 			currentUser.BirthdayDay = null;
 
-			await _context.SaveChangesAsync(cancellationToken);
+			await context.SaveChangesAsync(cancellationToken);
 
 			return Lines.BirthdayRemoved;
 		}

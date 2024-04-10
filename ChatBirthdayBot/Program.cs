@@ -35,12 +35,12 @@ var host = Host.CreateDefaultBuilder(args)
 			services.AddScoped<ReceiverService>();
 			services.AddSingleton<BotUserData>();
 
-			services.AddScoped<ICommand, BirthdayInfoCommand>();
-			services.AddScoped<ICommand, CheckChatMembersCommand>();
-			services.AddScoped<ICommand, ListBirthdaysCommand>();
-			services.AddScoped<ICommand, RemoveBirthdayCommand>();
-			services.AddScoped<ICommand, SetBirthdayCommand>();
-			services.AddScoped<ICommand, StartCommand>();
+			services.AddSingleton<ICommand, BirthdayInfoCommand>();
+			services.AddSingleton<ICommand, CheckChatMembersCommand>();
+			services.AddSingleton<ICommand, ListBirthdaysCommand>();
+			services.AddSingleton<ICommand, RemoveBirthdayCommand>();
+			services.AddSingleton<ICommand, SetBirthdayCommand>();
+			services.AddSingleton<ICommand, StartCommand>();
 
 			services.AddScoped<ICommandHandler, CommandHandler>();
 
@@ -52,19 +52,10 @@ var host = Host.CreateDefaultBuilder(args)
 var schedulerFactory = host.Services.GetRequiredService<ISchedulerFactory>();
 var scheduler = await schedulerFactory.GetScheduler();
 
-var job = JobBuilder.Create<PostBirthdaysJob>()
-	.WithIdentity("checkBirthdays", "birthdayBot")
-	.Build();
+const string QuartzGroupName = "birthdayBot";
 
-var trigger = TriggerBuilder.Create()
-	.WithIdentity("hourlyCheckBirthday", "birthdayBot")
-	.StartAt(DateBuilder.NextGivenMinuteDate(DateTimeOffset.UtcNow, 0))
-	.WithSimpleSchedule(x => x
-		.WithIntervalInHours(1)
-		.RepeatForever())
-	.Build();
-
-await scheduler.ScheduleJob(job, trigger);
+await scheduler.ScheduleJob(CreateJob<PostBirthdaysJob>("checkBirthdays"), CreateHourlyTrigger("hourlyCheckBirthday"));
+await scheduler.ScheduleJob(CreateJob<UnpinBirthdaysMessagesJob>("unpinMessages"), CreateHourlyTrigger("hourlyUnpinMessages"));
 
 using (var scope = host.Services.GetRequiredService<IServiceScopeFactory>().CreateScope())
 {
@@ -72,3 +63,24 @@ using (var scope = host.Services.GetRequiredService<IServiceScopeFactory>().Crea
 }
 
 await host.RunAsync();
+
+return;
+
+static IJobDetail CreateJob<T>(string name) where T : IJob
+{
+	return JobBuilder.Create<T>()
+		.WithIdentity(name, QuartzGroupName)
+		.Build();
+}
+
+static ITrigger CreateHourlyTrigger(string name)
+{
+	return TriggerBuilder.Create()
+		.WithIdentity(name, QuartzGroupName)
+		.StartAt(DateBuilder.NextGivenMinuteDate(DateTimeOffset.UtcNow, 0))
+		.WithSimpleSchedule(
+			x => x
+				.WithIntervalInHours(1)
+				.RepeatForever())
+		.Build();
+}

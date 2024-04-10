@@ -16,4 +16,5 @@ public class ChatRecord
 
 	public virtual ICollection<UserRecord> Users { get; set; }
 	public virtual ICollection<UserChat> UserChats { get; set; }
+	public virtual ICollection<SentMessage> SentMessages { get; set; }
 }

@@ -16,13 +16,13 @@ namespace ChatBirthdayBot.Tasks;
 public partial class PostBirthdaysJob : IJob
 {
 	private readonly ITelegramBotClient _botClient;
-	private readonly DataContext _context;
+	private readonly DataContext _dataContext;
 	private readonly ILogger<PostBirthdaysJob> _logger;
 
-	public PostBirthdaysJob(ITelegramBotClient botClient, DataContext context, ILogger<PostBirthdaysJob> logger)
+	public PostBirthdaysJob(ITelegramBotClient botClient, DataContext dataContext, ILogger<PostBirthdaysJob> logger)
 	{
 		_botClient = botClient;
-		_context = context;
+		_dataContext = dataContext;
 		_logger = logger;
 	}
 
@@ -31,7 +31,7 @@ public partial class PostBirthdaysJob : IJob
 		var scheduleDate = context.ScheduledFireTimeUtc!.Value.UtcDateTime;
 		var scheduleHours = scheduleDate.Hour;
 
-		foreach (var chat in _context.Chats.Where(
+		foreach (var chat in _dataContext.Chats.Where(
 			         chat => (chat.TimeZoneHourOffset + chat.CustomOffsetInHours + 24) % 24 == scheduleHours))
 		{
 			var totalOffsetHours = chat.TimeZoneHourOffset + chat.CustomOffsetInHours;
@@ -46,7 +46,7 @@ public partial class PostBirthdaysJob : IJob
 			}
 
 			var birthdayDay = scheduleDate.Date.AddDays(daysOffset);
-			var users = _context.Users
+			var users = _dataContext.Users
 				.Where(
 					user => (user.BirthdayDay == birthdayDay.Day) && (user.BirthdayMonth == birthdayDay.Month) &&
 						user.Chats.Contains(chat))
@@ -55,7 +55,8 @@ public partial class PostBirthdaysJob : IJob
 			if (!users.Any())
 				continue;
 
-			var usernamesToPost = users.Select(x => $"<a href=\"tg://user?id={x.Id}\">{HttpUtility.HtmlEncode(x.FirstName)}</a>");
+			var usernamesToPost = users.Select(
+				x => $"<a href=\"tg://user?id={x.Id}\">" + HttpUtility.HtmlEncode(x.FirstName) + "</a>");
 
 			try
 			{
@@ -65,6 +66,9 @@ public partial class PostBirthdaysJob : IJob
 				);
 
 				await _botClient.PinChatMessageAsync(chat.Id, message.MessageId, true);
+
+				await _dataContext.SentMessages.AddAsync(
+					new SentMessage {ChatId = chat.Id, MessageId = message.MessageId, SendDateUtc = scheduleDate});
 			}
 			catch (Exception e)
 			{

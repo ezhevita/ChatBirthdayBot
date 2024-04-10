@@ -9,6 +9,7 @@ using System.Web;
 using ChatBirthdayBot.Database;
 using ChatBirthdayBot.Localization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -17,12 +18,12 @@ namespace ChatBirthdayBot.Commands;
 
 public class ListBirthdaysCommand : ICommand
 {
-	private readonly DataContext _context;
+	private readonly IServiceScopeFactory _serviceScopeFactory;
 	private static readonly ConcurrentDictionary<long, int> _lastSentBirthdaysMessage = new();
 
-	public ListBirthdaysCommand(DataContext context)
+	public ListBirthdaysCommand(IServiceScopeFactory serviceScopeFactory)
 	{
-		_context = context;
+		_serviceScopeFactory = serviceScopeFactory;
 	}
 
 	public string CommandName => "birthdays";
@@ -39,7 +40,7 @@ public class ListBirthdaysCommand : ICommand
 
 		var birthdays = await GetNearestBirthdaysForChat(message.Chat.Id, cancellationToken);
 
-		if (!birthdays.Any())
+		if (birthdays.Count == 0)
 			return Lines.NoBirthdays;
 
 		return string.Join(
@@ -61,7 +62,10 @@ public class ListBirthdaysCommand : ICommand
 		var date = DateTime.UtcNow.AddHours(3);
 		var key = (ushort)((date.Month << 5) + date.Day);
 
-		return await _context.UserChats
+		await using var scope = _serviceScopeFactory.CreateAsyncScope();
+		var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+		return await context.UserChats
 			.Include(x => x.User)
 			.Where(x => (x.ChatId == chatID) && (x.User.BirthdayDay != null) && (x.User.BirthdayMonth != null))
 			.Select(userChat => new {userChat, tempKey = userChat.User.BirthdayMonth * 32 + userChat.User.BirthdayDay})
