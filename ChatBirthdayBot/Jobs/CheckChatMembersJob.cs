@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ChatBirthdayBot.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Quartz;
@@ -31,24 +33,48 @@ public partial class CheckChatMembersJob : IJob
 		var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
 		var membersToRemove = new List<UserChat>();
-		await foreach (var userChat in dataContext.UserChats)
+		var batchMembersToRemove = new List<UserChat>();
+
+		var batch = await dataContext.UserChats
+			.OrderBy(x => x.ChatId)
+			.ThenBy(x => x.UserId)
+			.Take(100)
+			.ToListAsync();
+
+		var i = 0;
+		while (batch.Count > 0)
 		{
-			try
+			foreach (var userChat in batch)
 			{
-				var chatMember = await _telegramBotClient.GetChatMemberAsync(userChat.ChatId, userChat.UserId);
-				if (chatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left)
+				try
 				{
-					membersToRemove.Add(userChat);
+					var chatMember = await _telegramBotClient.GetChatMemberAsync(userChat.ChatId, userChat.UserId);
+					if (chatMember.Status is ChatMemberStatus.Kicked or ChatMemberStatus.Left)
+					{
+						batchMembersToRemove.Add(userChat);
+					}
+				}
+				catch (ApiRequestException e) when (e.Message.Contains("user not found", StringComparison.Ordinal))
+				{
+					batchMembersToRemove.Add(userChat);
+				}
+				catch (Exception e)
+				{
+					LogChatMemberCheckFailed(e);
 				}
 			}
-			catch (ApiRequestException e) when (e.Message.Contains("user not found", StringComparison.Ordinal))
-			{
-				membersToRemove.Add(userChat);
-			}
-			catch (Exception e)
-			{
-				LogChatMemberCheckFailed(e);
-			}
+
+			LogChatMembersBatchProcessed(batchMembersToRemove.Count, i);
+			membersToRemove.AddRange(batchMembersToRemove);
+			batchMembersToRemove.Clear();
+
+			i++;
+			batch = await dataContext.UserChats
+				.OrderBy(x => x.ChatId)
+				.ThenBy(x => x.UserId)
+				.Skip(i * 100)
+				.Take(100)
+				.ToListAsync();
 		}
 
 		dataContext.UserChats.RemoveRange(membersToRemove);
@@ -56,6 +82,11 @@ public partial class CheckChatMembersJob : IJob
 
 		LogChatMembersRemoved(membersToRemove.Count);
 	}
+
+	[LoggerMessage(
+		LogLevel.Debug, "Batch #{BatchNumber} processed, {MembersToRemove} members to remove",
+		EventId = (int)LogEventId.ChatMemberCheckBatchProcessed)]
+	private partial void LogChatMembersBatchProcessed(int membersToRemove, int batchNumber);
 
 	[LoggerMessage(LogLevel.Information, "{MembersRemoved} chat members removed", EventId = (int)LogEventId.ChatMembersRemoved)]
 	private partial void LogChatMembersRemoved(int membersRemoved);
