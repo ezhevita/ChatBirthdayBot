@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Data;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,7 +58,7 @@ public partial class UpdateHandler : IUpdateHandler
 
 		_logger.LogCommandMessage(message);
 
-		Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = message.From.LanguageCode switch
+		CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = message.From.LanguageCode switch
 		{
 			null or "" or "ru" or "uk" or "be" => _russianCulture,
 			_ => CultureInfo.GetCultureInfoByIetfLanguageTag(message.From.LanguageCode)
@@ -92,6 +93,9 @@ public partial class UpdateHandler : IUpdateHandler
 	private async Task ProcessDatabaseUpdates(Update update, CancellationToken cancellationToken)
 	{
 		ArgumentNullException.ThrowIfNull(update);
+
+		await using var transaction =
+			await _context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
 
 		switch (update.Type)
 		{
@@ -165,6 +169,7 @@ public partial class UpdateHandler : IUpdateHandler
 		}
 
 		await _context.SaveChangesAsync(cancellationToken);
+		await transaction.CommitAsync(cancellationToken);
 	}
 
 	private Task<int> UpdateChat(Chat chat) =>
