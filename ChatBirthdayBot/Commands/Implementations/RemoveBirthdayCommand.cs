@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ChatBirthdayBot.Database;
@@ -16,8 +17,6 @@ public class RemoveBirthdayCommand : ICommand
 	public RemoveBirthdayCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public string CommandName => "removebirthday";
-
-	public bool ShouldBeExecutedForChatType(ChatType chatType) => chatType == ChatType.Private;
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{
@@ -39,4 +38,6 @@ public class RemoveBirthdayCommand : ICommand
 
 		return Lines.BirthdayRemoved;
 	}
+
+	public IReadOnlySet<ChatType> AllowedChatTypes { get; } = new HashSet<ChatType> {ChatType.Private};
 }

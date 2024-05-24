@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -14,5 +15,5 @@ public interface ICommand
 
 	public Task HandleSentMessage(Message sentMessage) => Task.CompletedTask;
 
-	public bool ShouldBeExecutedForChatType(ChatType chatType);
+	public IReadOnlySet<ChatType> AllowedChatTypes { get; }
 }

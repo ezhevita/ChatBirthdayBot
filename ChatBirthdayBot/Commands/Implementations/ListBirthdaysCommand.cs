@@ -25,8 +25,6 @@ public class ListBirthdaysCommand : ICommand
 
 	public string CommandName => "birthdays";
 
-	public bool ShouldBeExecutedForChatType(ChatType chatType) => chatType is ChatType.Group or ChatType.Supergroup;
-
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{
 		if (_lastSentBirthdaysMessage.TryGetValue(message.Chat.Id, out var messageID))
@@ -57,6 +55,8 @@ public class ListBirthdaysCommand : ICommand
 
 		return Task.CompletedTask;
 	}
+
+	public IReadOnlySet<ChatType> AllowedChatTypes { get; } = new HashSet<ChatType> {ChatType.Group, ChatType.Supergroup};
 
 	private static int AgeFromDate(DateTime birthdate)
 	{

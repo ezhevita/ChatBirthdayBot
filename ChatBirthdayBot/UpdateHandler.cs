@@ -190,9 +190,8 @@ public partial class UpdateHandler : IUpdateHandler
 				})
 			.RunAsync();
 
-	private async Task UpdateUser(User user)
-	{
-		await _context.Upsert(
+	private Task<int> UpdateUser(User user) =>
+		_context.Upsert(
 				new UserRecord
 				{
 					Id = user.Id,
@@ -211,21 +210,21 @@ public partial class UpdateHandler : IUpdateHandler
 					Username = user.Username
 				})
 			.RunAsync();
-	}
 
-	private async Task UpdateUserChat(Chat chat, User user)
-	{
-		var participantExists = await _context.UserChats.AnyAsync(x => (x.ChatId == chat.Id) && (x.UserId == user.Id));
-		if (!participantExists)
-		{
-			UserChat participant = new()
-			{
-				ChatId = chat.Id,
-				UserId = user.Id,
-				IsPublic = true
-			};
-
-			_context.UserChats.Add(participant);
-		}
-	}
+	private Task<int> UpdateUserChat(Chat chat, User user) =>
+		_context.Upsert(
+				new UserChat
+				{
+					ChatId = chat.Id,
+					UserId = user.Id,
+					IsPublic = true
+				})
+			.WhenMatched(
+				x => new UserChat
+				{
+					ChatId = chat.Id,
+					UserId = user.Id,
+					IsPublic = x.IsPublic
+				})
+			.RunAsync();
 }

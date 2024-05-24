@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ public class BirthdayInfoCommand : ICommand
 	public BirthdayInfoCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public virtual string CommandName => "birthday";
-	public bool ShouldBeExecutedForChatType(ChatType chatType) => chatType == ChatType.Private;
+	public IReadOnlySet<ChatType> AllowedChatTypes { get; } = new HashSet<ChatType> {ChatType.Private};
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{

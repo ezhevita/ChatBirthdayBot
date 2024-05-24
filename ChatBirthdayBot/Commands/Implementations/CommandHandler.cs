@@ -52,7 +52,7 @@ public sealed partial class CommandHandler : ICommandHandler
 		if (!_commands.TryGetValue(commandName.ToUpperInvariant(), out var command))
 			return;
 
-		if (!command.ShouldBeExecutedForChatType(message.Chat.Type))
+		if (!command.AllowedChatTypes.Contains(message.Chat.Type))
 			return;
 
 		var response = await command.ExecuteCommand(botClient, message, cancellationToken);
