@@ -3,19 +3,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace ChatBirthdayBot;
 
-public partial class PollingService : BackgroundService
+public class PollingService : BackgroundService
 {
-	private readonly ILogger _logger;
 	private readonly IServiceProvider _serviceProvider;
 
-	public PollingService(IServiceProvider serviceProvider, ILogger<PollingService> logger)
+	public PollingService(IServiceProvider serviceProvider)
 	{
 		_serviceProvider = serviceProvider;
-		_logger = logger;
 	}
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
