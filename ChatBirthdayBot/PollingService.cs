@@ -22,22 +22,10 @@ public partial class PollingService : BackgroundService
 	{
 		while (!stoppingToken.IsCancellationRequested)
 		{
-			try
-			{
-				using var scope = _serviceProvider.CreateScope();
-				var receiver = scope.ServiceProvider.GetRequiredService<ReceiverService>();
+			using var scope = _serviceProvider.CreateScope();
+			var receiver = scope.ServiceProvider.GetRequiredService<ReceiverService>();
 
-				await receiver.ReceiveAsync(stoppingToken);
-			}
-			catch (Exception ex)
-			{
-				LogHandlingError(ex);
-
-				await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-			}
+			await receiver.ReceiveAsync(stoppingToken);
 		}
 	}
-
-	[LoggerMessage(EventId = (int)LogEventId.HandlingErrorOccurred, Level = LogLevel.Error, Message = "Handling updates failed")]
-	private partial void LogHandlingError(Exception ex);
 }

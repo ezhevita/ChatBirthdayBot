@@ -32,7 +32,20 @@ public partial class UpdateHandler : IUpdateHandler
 
 	public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
 	{
+		try
+		{
+			await HandleUpdateAsyncCore(botClient, update, cancellationToken);
+		}
+		catch (Exception e)
+		{
+			LogHandlingError(e);
+		}
+	}
+
+	private async Task HandleUpdateAsyncCore(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+	{
 		_logger.LogNonMessageUpdate(update);
+
 		await ProcessDatabaseUpdates(update, cancellationToken);
 
 		if ((update.Type != UpdateType.Message) || (update.Message!.Type != MessageType.Text))
@@ -89,6 +102,9 @@ public partial class UpdateHandler : IUpdateHandler
 		Message = "Polling error occured with an exception"
 	)]
 	private partial void LogPollingError(Exception ex);
+
+	[LoggerMessage(EventId = (int)LogEventId.HandlingErrorOccurred, Level = LogLevel.Error, Message = "Handling updates failed")]
+	private partial void LogHandlingError(Exception ex);
 
 	private async Task ProcessDatabaseUpdates(Update update, CancellationToken cancellationToken)
 	{
