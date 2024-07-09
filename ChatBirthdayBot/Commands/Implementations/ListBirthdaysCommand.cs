@@ -24,6 +24,7 @@ public class ListBirthdaysCommand : ICommand
 	public ListBirthdaysCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public string CommandName => "birthdays";
+	public string CommandDescriptionLocalizationKey => nameof(Lines.BirthdaysCommandDescription);
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace ChatBirthdayBot;
 
@@ -31,5 +33,15 @@ public static class Utilities
 		}
 
 		return d.ToString(pattern, CultureInfo.CurrentCulture);
+	}
+
+	public static BotCommandScope ChatTypeToCommandScope(ChatType chatType)
+	{
+		return chatType switch
+		{
+			ChatType.Private => new BotCommandScopeAllPrivateChats(),
+			ChatType.Group or ChatType.Supergroup => new BotCommandScopeAllGroupChats(),
+			_ => throw new ArgumentOutOfRangeException(nameof(chatType))
+		};
 	}
 }

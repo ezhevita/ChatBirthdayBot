@@ -19,6 +19,7 @@ public class SetBirthdayCommand : ICommand
 	public SetBirthdayCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public string CommandName => "setbirthday";
+	public string CommandDescriptionLocalizationKey => nameof(Lines.SetBirthdayCommandDescription);
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{

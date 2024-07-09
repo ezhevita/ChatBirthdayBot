@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -13,13 +13,13 @@ namespace ChatBirthdayBot.Commands;
 public sealed partial class CommandHandler : ICommandHandler
 {
 	private readonly BotUserData _botUserData;
-	private readonly Dictionary<string, ICommand> _commands;
+	private readonly FrozenDictionary<string, ICommand> _commands;
 	private readonly ILogger<CommandHandler> _logger;
 
 	public CommandHandler(IEnumerable<ICommand> commands, ILogger<CommandHandler> logger, BotUserData botUserData)
 	{
 		_logger = logger;
-		_commands = commands.ToDictionary(x => x.CommandName.ToUpperInvariant(), x => x);
+		_commands = commands.ToFrozenDictionary(x => x.CommandName.ToUpperInvariant(), x => x);
 		_botUserData = botUserData;
 	}
 

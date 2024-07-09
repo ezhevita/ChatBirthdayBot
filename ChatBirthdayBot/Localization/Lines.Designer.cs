@@ -86,5 +86,29 @@ namespace ChatBirthdayBot.Localization {
                 return ResourceManager.GetString("NoBirthdays", resourceCulture);
             }
         }
+        
+        internal static string BirthdaysCommandDescription {
+            get {
+                return ResourceManager.GetString("BirthdaysCommandDescription", resourceCulture);
+            }
+        }
+        
+        internal static string BirthdayCommandDescription {
+            get {
+                return ResourceManager.GetString("BirthdayCommandDescription", resourceCulture);
+            }
+        }
+        
+        internal static string SetBirthdayCommandDescription {
+            get {
+                return ResourceManager.GetString("SetBirthdayCommandDescription", resourceCulture);
+            }
+        }
+        
+        internal static string RemoveBirthdayCommandDescription {
+            get {
+                return ResourceManager.GetString("RemoveBirthdayCommandDescription", resourceCulture);
+            }
+        }
     }
 }

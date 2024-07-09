@@ -17,6 +17,7 @@ public class RemoveBirthdayCommand : ICommand
 	public RemoveBirthdayCommand(IServiceScopeFactory serviceScopeFactory) => _serviceScopeFactory = serviceScopeFactory;
 
 	public string CommandName => "removebirthday";
+	public string CommandDescriptionLocalizationKey => nameof(Lines.RemoveBirthdayCommandDescription);
 
 	public async Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
 	{

@@ -45,4 +45,16 @@
 	<data name="NoBirthdays" xml:space="preserve">
 		<value>No members with birthdays in the chat! Set your own birthday by DMing the bot.</value>
 	</data>
+	<data name="BirthdaysCommandDescription" xml:space="preserve">
+		<value>list the closest birthdays</value>
+	</data>
+	<data name="BirthdayCommandDescription" xml:space="preserve">
+		<value>show your birthday date</value>
+	</data>
+	<data name="SetBirthdayCommandDescription" xml:space="preserve">
+		<value>[date] set birthday date</value>
+	</data>
+	<data name="RemoveBirthdayCommandDescription" xml:space="preserve">
+		<value>remove birthday date</value>
+	</data>
 </root>

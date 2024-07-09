@@ -11,6 +11,8 @@ public interface ICommand
 {
 	public string CommandName { get; }
 
+	public string CommandDescriptionLocalizationKey { get; }
+
 	public Task<string?> ExecuteCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken);
 
 	public Task HandleSentMessage(Message sentMessage) => Task.CompletedTask;

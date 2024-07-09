@@ -45,4 +45,16 @@
 	<data name="NoBirthdays" xml:space="preserve">
 		<value>В чате ни у кого не установлен день рождения! Установите свой день рождения, написав боту в ЛС.</value>
 	</data>
+	<data name="BirthdaysCommandDescription" xml:space="preserve">
+		<value>показать ближайшие дни рождения</value>
+	</data>
+	<data name="BirthdayCommandDescription" xml:space="preserve">
+		<value>показать вашу дату дня рождения</value>
+	</data>
+	<data name="SetBirthdayCommandDescription" xml:space="preserve">
+		<value>[дата] установить день рождения</value>
+	</data>
+	<data name="RemoveBirthdayCommandDescription" xml:space="preserve">
+		<value>убрать день рождения</value>
+	</data>
 </root>
