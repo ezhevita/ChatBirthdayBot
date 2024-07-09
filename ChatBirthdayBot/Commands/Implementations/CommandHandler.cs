@@ -42,7 +42,7 @@ public sealed partial class CommandHandler : ICommandHandler
 			var botName = commandName[(indexOfAt + 1)..];
 			if (!string.IsNullOrEmpty(botName))
 			{
-				if (botName.Equals(_botUserData.Username, StringComparison.OrdinalIgnoreCase))
+				if (!botName.Equals(_botUserData.Username, StringComparison.OrdinalIgnoreCase))
 					return;
 			}
 
