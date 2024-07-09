@@ -87,7 +87,7 @@ public partial class UpdateHandler : IUpdateHandler
 
 		await _handler.Execute(botClient, message, cancellationToken);
 
-		await _context.SaveChangesAsync(cancellationToken);
+		await _context.SaveChangesConcurrentAsync(cancellationToken);
 	}
 
 	public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
@@ -184,7 +184,7 @@ public partial class UpdateHandler : IUpdateHandler
 			}
 		}
 
-		await _context.SaveChangesAsync(cancellationToken);
+		await _context.SaveChangesConcurrentAsync(cancellationToken);
 		await transaction.CommitAsync(cancellationToken);
 	}
 

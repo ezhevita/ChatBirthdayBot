@@ -34,7 +34,7 @@ public class RemoveBirthdayCommand : ICommand
 		currentUser.BirthdayMonth = null;
 		currentUser.BirthdayDay = null;
 
-		await context.SaveChangesAsync(cancellationToken);
+		await context.SaveChangesConcurrentAsync(cancellationToken);
 
 		return Lines.BirthdayRemoved;
 	}

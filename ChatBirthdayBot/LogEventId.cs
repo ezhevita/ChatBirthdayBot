@@ -1,9 +1,8 @@
 namespace ChatBirthdayBot;
 
-#pragma warning disable CA1008
 public enum LogEventId
-#pragma warning restore CA1008
 {
+	None,
 	PollingErrorOccurred = 10000,
 	HandlingErrorOccurred,
 	RespondErrorOccurred,

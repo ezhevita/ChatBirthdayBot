@@ -26,6 +26,9 @@ public class UnpinBirthdaysMessagesJob : IJob
 		var messagesToUnpin = await _dataContext.SentMessages.Where(e => e.SendDateUtc < date).ToListAsync();
 		foreach (var messageToUnpin in messagesToUnpin)
 		{
+			if (context.CancellationToken.IsCancellationRequested)
+				return;
+
 			try
 			{
 				await _botClient.UnpinChatMessageAsync(messageToUnpin.ChatId, messageToUnpin.MessageId);
@@ -36,6 +39,6 @@ public class UnpinBirthdaysMessagesJob : IJob
 		}
 
 		_dataContext.SentMessages.RemoveRange(messagesToUnpin);
-		await _dataContext.SaveChangesAsync();
+		await _dataContext.SaveChangesConcurrentAsync(context.CancellationToken);
 	}
 }

@@ -49,6 +49,9 @@ public partial class CheckChatMembersJob : IJob
 		{
 			foreach (var userChat in batch)
 			{
+				if (context.CancellationToken.IsCancellationRequested)
+					return;
+
 				if (!cachedBotStatus.TryGetValue(userChat.ChatId, out var status))
 				{
 					try
@@ -84,7 +87,7 @@ public partial class CheckChatMembersJob : IJob
 				}
 				catch (Exception e)
 				{
-					LogChatMemberCheckFailed(e);
+					LogChatMemberCheckFailed(e, userChat.UserId, userChat.ChatId);
 				}
 			}
 
@@ -101,7 +104,7 @@ public partial class CheckChatMembersJob : IJob
 		}
 
 		dataContext.UserChats.RemoveRange(membersToRemove);
-		await dataContext.SaveChangesAsync();
+		await dataContext.SaveChangesConcurrentAsync(context.CancellationToken);
 
 		LogChatMembersRemoved(membersToRemove.Count);
 	}
@@ -109,6 +112,7 @@ public partial class CheckChatMembersJob : IJob
 	[LoggerMessage(LogLevel.Information, "{MembersRemoved} chat members removed", EventId = (int)LogEventId.ChatMembersRemoved)]
 	private partial void LogChatMembersRemoved(int membersRemoved);
 
-	[LoggerMessage(LogLevel.Warning, "Chat member check failed", EventId = (int)LogEventId.ChatMemberCheckFailed)]
-	private partial void LogChatMemberCheckFailed(Exception exception);
+	[LoggerMessage(LogLevel.Warning, "Chat member check failed, user {UserID} for chat {ChatID}",
+		EventId = (int)LogEventId.ChatMemberCheckFailed)]
+	private partial void LogChatMemberCheckFailed(Exception exception, long userID, long chatID);
 }

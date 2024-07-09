@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using ChatBirthdayBot.Database;
@@ -35,6 +34,9 @@ public partial class PostBirthdaysJob : IJob
 		foreach (var chat in _dataContext.Chats.Where(
 			         chat => (chat.TimeZoneHourOffset + chat.CustomOffsetInHours + 24) % 24 == scheduleHours))
 		{
+			if (context.CancellationToken.IsCancellationRequested)
+				return;
+
 			var totalOffsetHours = chat.TimeZoneHourOffset + chat.CustomOffsetInHours;
 
 			int daysOffset;
@@ -69,7 +71,7 @@ public partial class PostBirthdaysJob : IJob
 
 				await _dataContext.SentMessages.AddAsync(
 					new SentMessage {ChatId = chat.Id, MessageId = message.MessageId, SendDateUtc = scheduleDate});
-				await _dataContext.SaveChangesAsync();
+				await _dataContext.SaveChangesConcurrentAsync(context.CancellationToken);
 			}
 			catch (Exception e)
 			{

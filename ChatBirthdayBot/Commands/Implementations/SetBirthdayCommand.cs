@@ -50,7 +50,7 @@ public class SetBirthdayCommand : ICommand
 		currentUser.BirthdayMonth = (byte)birthdayDate.Month;
 		currentUser.BirthdayYear = birthdayDate.Year == 0004 ? null : (ushort?)birthdayDate.Year;
 
-		await context.SaveChangesAsync(cancellationToken);
+		await context.SaveChangesConcurrentAsync(cancellationToken);
 
 		return Lines.BirthdaySetSuccessfully;
 	}

@@ -15,21 +15,19 @@ public static class Utilities
 	public static string ToLongDateStringWithoutDayOfWeek(this DateTime d)
 	{
 		var currentCulture = CultureInfo.CurrentCulture;
-		// ReSharper disable InconsistentlySynchronizedField - readonly access is thread-safe
-		if (_cachedLongDatePatterns.TryGetValue(currentCulture, out var pattern))
-			// ReSharper restore InconsistentlySynchronizedField
-		{
-			return d.ToString(pattern, CultureInfo.CurrentCulture);
-		}
 
-		pattern = CultureInfo.CurrentCulture.DateTimeFormat.GetAllDateTimePatterns('D')
-			.FirstOrDefault(
-				dateTimePattern => !dateTimePattern.Contains("ddd", StringComparison.Ordinal) &&
-					!dateTimePattern.Contains("dddd", StringComparison.Ordinal)) ?? "D";
-
+		string? pattern;
 		lock (_cachedLongDatePatterns)
 		{
-			_cachedLongDatePatterns[currentCulture] = pattern;
+			if (!_cachedLongDatePatterns.TryGetValue(currentCulture, out pattern))
+			{
+				pattern = CultureInfo.CurrentCulture.DateTimeFormat.GetAllDateTimePatterns('D')
+					.FirstOrDefault(
+						dateTimePattern => !dateTimePattern.Contains("ddd", StringComparison.Ordinal) &&
+							!dateTimePattern.Contains("dddd", StringComparison.Ordinal)) ?? "D";
+
+				_cachedLongDatePatterns[currentCulture] = pattern;
+			}
 		}
 
 		return d.ToString(pattern, CultureInfo.CurrentCulture);
