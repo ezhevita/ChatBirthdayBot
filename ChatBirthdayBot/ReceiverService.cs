@@ -45,7 +45,7 @@ public class ReceiverService
 		{
 			var commands = _commands.Where(command => command.AllowedChatTypes.Contains(chatType)).ToList();
 
-			foreach (var locale in new[] {null, "ru-RU"})
+			foreach (var locale in new[] {null, "ru"})
 			{
 				await _botClient.SetMyCommandsAsync(
 					BotCommandsForLocale(commands, locale), Utilities.ChatTypeToCommandScope(chatType), locale, stoppingToken);
