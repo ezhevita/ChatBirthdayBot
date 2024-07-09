@@ -12,7 +12,7 @@ namespace ChatBirthdayBot.Commands;
 
 public sealed partial class CommandHandler : ICommandHandler
 {
-	private readonly string _botUsername;
+	private readonly BotUserData _botUserData;
 	private readonly Dictionary<string, ICommand> _commands;
 	private readonly ILogger<CommandHandler> _logger;
 
@@ -20,7 +20,7 @@ public sealed partial class CommandHandler : ICommandHandler
 	{
 		_logger = logger;
 		_commands = commands.ToDictionary(x => x.CommandName.ToUpperInvariant(), x => x);
-		_botUsername = botUserData.Username;
+		_botUserData = botUserData;
 	}
 
 	public async Task Execute(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
@@ -42,7 +42,7 @@ public sealed partial class CommandHandler : ICommandHandler
 			var botName = commandName[(indexOfAt + 1)..];
 			if (!string.IsNullOrEmpty(botName))
 			{
-				if (botName.Equals(_botUsername, StringComparison.OrdinalIgnoreCase))
+				if (botName.Equals(_botUserData.Username, StringComparison.OrdinalIgnoreCase))
 					return;
 			}
 
